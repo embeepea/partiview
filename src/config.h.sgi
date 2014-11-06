@@ -1,0 +1,8 @@
+#ifndef CONFIG_H
+#define CONFIG_H  1
+# if sgi
+#  define WORDS_BIGENDIAN 1
+#  define HAVE_ALLOCA_H   1
+#  define HAVE_MALLOC_H   1
+# endif
+#endif

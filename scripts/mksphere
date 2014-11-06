@@ -1,0 +1,170 @@
+#! /usr/bin/perl
+
+$cmd = join(" ", @ARGV);
+($me = $0) =~ s'.*/'';
+
+$map = "aitoff";
+$style = "solid";
+$color = 20;
+$radius = 1.0;
+$txscale = 1;
+
+while(($_ = shift(@ARGV)) ne "") {
+  $any = @ARGV;
+  if(/^-rect$/) { $map = "rect"; }	# rectangular, X=lon, Y=lat
+  elsif(/^-cyl/) { $map = "cyl"; }	# rectangular equal-area, X=lon, Y=Z
+  elsif(/^-ait/) { $map = "aitoff"; }	# Aitoff
+  elsif(/^-sin/) { $map = "sin"; }	# Sinusoidal
+  elsif(/^-st/)  { $map = "stereo"; }	# Stereographic
+  elsif(/^-t$|^-txno$/) { $txno = shift; }
+  elsif(/^-txfile/) { $txfile = shift; }
+  elsif(/^-txs/) { $txscale = shift; }
+  elsif(/^-line/) { $style = "line"; }
+  elsif(/^-solid/) { $style = "solid"; }
+  elsif(/^-asymp/) { $asymp = 1; }
+  elsif(/^-c/) { $color = shift; }
+  elsif(/^-n$/) { $nunv = shift; }
+  elsif(/^-r$|^-radius/) { $radius = shift; }
+  elsif(/^(\w+)=(.*)/) {
+    eval("\$$1 = $2;");
+  }
+  else {
+    print "$0: unknown option $_\n";
+    print STDERR <<EOF;
+Usage: $0 [-rect|-cyl|-aitoff|-sin|-ster] [-n nu[,nv]] [-color cindex] [-line] \
+	[-txno txnumber] [-txfile imagename] [-color cindex] > file.speck
+Generate sphere in partiview mesh form, with texture coordinates
+for given map projection:
+  -rect  rectangular map, X=longitude, Y=latitude
+  -cyl   rectangular equal-area, X=lon, Y=cylinder Z
+  -aitoff  Aitoff equal-area projection
+  -sin   sinusoidal projection
+  -ster  stereographic projection (center = +Z pole)
+  -n nu,nv Numbers of grid points in u (lon) and v (lat) directions.
+  -txno texture number
+  -txfile texture image filename
+  -txscale  scale texture about (0.5,0.5) point
+  -line   make wireframe sphere (default solid)
+  -color  color (index into colormap)
+Defaults:  -aitoff -n 41,31 -color $color -txno $txno
+EOF
+    exit(1);
+  }
+}
+
+if($nunv) {
+  ($nu, $nv) = ($nunv =~ /(\d+),?(\d*)/);
+  $nv = $nu * 3/4 if $nv == 0;
+} else {
+  $nu = 41;
+  $nv = 31;
+}
+
+$hu = int($nu/2);
+$hv = int($nv/2);
+
+$nu = 2*$hu + 1;
+$nv = 2*$hv + 1;
+
+$pi = 3.1415926535;
+
+sub sigma {
+  local($_) = @_;
+  (3 - $_*$_) * $_ * .5;
+}
+
+sub asin {
+  $_[0] = 1, printf STDERR "asin(%g) u%d v%d\n",$_[0],$u,$v if $_[0]*$_[0] > 1;
+  atan2( $_[0], sqrt(1-$_[0]*$_[0]) );
+}
+
+# Aitoff mapping
+sub XY2lonlat {
+  local($X, $Y) = @_;
+  local($R2) = $X*$X + $Y*$Y;
+  $R2 = 1 if $R2 > 1;
+  local($z) = sqrt(1 - .5*$R2);
+  local($sq2) = sqrt(2);
+
+  # tan lon/2 = sqrt(8) * X * z / (2 * (2 z^2 - 1))
+  #	      = sqrt(2) * X * z / (1 - r^2)
+  # sin lat   = sqrt(2) * Y * z
+
+  local($lon) = 2 * atan2( $sq2 * $X * $z,  1 - $R2 );
+  local($lat) = &asin( $sq2 * $Y * $z );
+  ($lon, $lat);
+}
+
+print "#! /usr/bin/env partiview\n";
+print "# $me $cmd\n\n";
+
+$txno = 1 if $txno eq "";
+print "texture $txno $txfile\n" if $txfile;
+print "mesh -t $txno -s $style {\n";
+
+printf "%d %d\n", $nu, $nv;
+
+if($map eq "aitoff") {
+    for($v = 0; $v < $nv; $v++) {
+	$vfrac = ($v / ($nv-1)) * 2 - 1;
+	$ay0 = &sigma( $vfrac );
+	$ay0 *= .99995 if $ay0*$ay0 >= 1;
+	for($u = 0; $u < $nu; $u++) {
+	    $ax = &sigma(&sigma(&sigma( $u / ($nu-1) * 2 - 1 )));
+	    $ay = $ay0 * sqrt(1 - $ax*$ax);
+
+	    ($lon, $lat) = &XY2lonlat( $ax, $ay );
+
+	    &putpoint($lon, $lat, .5 - .5*$ax, .5 - .5*$ay);
+	}
+	print "\n";
+    }
+} else {
+    for($v = 0; $v < $nv; $v++) {
+	$vfrac = ($v / ($nv-1));
+	$vfrac = &sigma( &sigma( $vfrac ) ) if $asymp;
+	$vfrac = .999999 if($v == $nv-1);
+	$lat = (.5 - $vfrac) * $pi;
+	$z = sin($lat);
+	$r = cos($lat);
+	for($u = 0; $u < $nu; $u++) {
+	    $ufrac = $u / ($nu-1);
+	    $lon = ($ufrac * 2 - 1) * $pi;
+	    $x = $r * cos($lon);
+	    $y = $r * sin($lon);
+	    if($map eq "sin") {
+		$s = .5 + $r * ($ufrac - .5);
+		$t = 1 - $vfrac;
+	    } elsif($map eq "rect") {
+		$s = $ufrac;
+		$t = 1 - $vfrac;
+	    } elsif($map eq "cyl") {
+		$s = $ufrac;
+		$t = (1 + $z) * .5;
+	    } elsif($map eq "stereo") {
+		$s = .5 + $x / ($z < -.99999 ? .99999 : 1 + $z);
+		$t = .5 + $y / ($z < -.999 ? .001 : 1 + $z);
+	    } else {	# oneface
+		$s = ($x + 1) * .5;
+		$t = ($z + 1) * .5;
+	    }
+	    &putpoint( $lon, $lat, $s, $t );
+	}
+	print "\n";
+    }
+}
+print "}\n";
+
+sub putpoint {
+    local($lon, $lat, $s, $t) = @_;
+
+    local($clon) = cos($lon);
+    local($slon) = sin($lon);
+    local($clat) = cos($lat);
+    local($slat) = sin($lat);
+
+    printf "%.7f %.7f %.7f  %.8f %.8f  %.5f %.5f\n",
+	$radius*$clon*$clat, $radius*$slon*$clat, $radius*$slat,
+	$txscale * ($s-0.5) + 0.5, $txscale * ($t-0.5) + 0.5,
+	$lon * 180/$pi, $lat * 180/$pi;
+}

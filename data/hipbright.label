@@ -1,0 +1,298 @@
+datavar 0 colorb_v text 
+datavar 1 lum text 
+datavar 2 Mv text 
+datavar 3 mv text 
+0 0 0 text 
+0 0 0 text 
+26.0 1.0 14.5 text alpha And Alpheratz
+8.6 0.3 14.3 text beta Cas Caph
+17.4 2.0 -16.0 text alpha Phe Ankaa
+38.0 6.8 58.5 text alpha Cas Shedir
+27.4 5.3 -9.1 text beta Cet Diphda
+89.1 22.5 163.9 text gamma Cas
+47.4 14.9 35.6 text beta And Mirach
+21.7 9.9 -37.1 text alpha Eri Achernar
+69.0 41.4 73.3 text gamma2 And
+15.8 9.8 8.0 text alpha Ari Hamal
+1.3 1.0 132.3 text alpha UMi Polaris
+14.6 15.7 18.7 text beta Per Algol
+73.5 91.0 138.7 text alpha Per Mirphak
+6.9 17.9 5.7 text alpha Tau Aldebaran
+46.2 229.9 -33.8 text beta Ori Rigel
+1.7 8.8 9.3 text alpha Aur Capella
+11.2 73.2 8.2 text gamma Ori Bellatrix
+5.2 34.9 19.2 text beta Tau Alnath
+34.2 278.8 -1.5 text delta Ori
+42.6 409.2 -8.6 text epsilon Ori Alnilam
+21.0 249.6 -8.5 text zeta Ori
+11.6 217.8 -37.2 text kappa Ori Saiph
+2.7 129.9 16.9 text alpha Ori Betelgeuse
+0.0 17.8 17.8 text beta Aur Menkalinan
+-14.4 145.0 -47.2 text beta CMa Murzim
+-6.1 57.8 -76.3 text alpha Car Canopus
+-5.0 30.4 9.1 text gamma Gem Alhena
+-0.5 2.5 -0.8 text alpha CMa Sirius
+-29.2 111.8 -64.0 text epsilon CMa Adara
+-144.7 470.4 -244.2 text delta CMa Wezen
+-5.4 12.3 8.3 text alpha Gem Castor
+-1.5 3.2 0.3 text alpha CMi Procyon
+-4.0 8.2 4.9 text beta Gem Pollux
+-168.8 282.1 -275.9 text zeta Pup Naos
+-93.5 147.5 -189.5 text gamma1 Vel
+-57.3 79.9 -167.0 text epsilon Car Avior
+-9.3 10.6 -20.0 text delta Vel
+-93.3 87.0 -120.8 text 
+-8.8 7.9 -32.0 text beta Car Miaplacidus
+-82.2 70.8 -182.5 text iota Car Turais
+-42.3 33.2 -8.2 text alpha Hya Alphard
+-20.5 10.9 4.9 text alpha Leo Regulus
+-32.8 15.3 13.1 text gamma2 Leo
+-13.0 3.4 20.3 text beta UMa Merak
+-17.4 4.4 33.4 text alpha UMa Dubhe
+-10.7 0.5 2.8 text beta Leo Denebola
+-15.2 0.4 20.7 text gamma UMa Phad
+-44.2 -5.2 -87.7 text alpha2 Cru
+-14.5 -2.0 -22.6 text gamma Cru
+-25.8 -4.7 -30.2 text gamma Cen
+-53.4 -11.3 -93.3 text beta Cru Becrux
+-13.5 -3.2 20.6 text epsilon UMa Alioth
+-12.9 -4.9 19.6 text zeta UMa
+-73.5 -28.6 -15.6 text alpha Vir Spica
+-62.2 -29.0 -92.6 text epsilon Cen
+-18.0 -9.1 23.4 text eta UMa Alkaid
+-68.3 -40.9 -140.0 text beta Cen Agena
+-12.8 -7.9 -11.1 text theta Cen Menkent
+-8.8 -5.9 3.7 text alpha Boo Arcturus
+-54.6 -44.0 -63.5 text eta Cen
+-0.5 -0.4 -1.2 text alpha2 Cen
+-86.5 -73.9 -123.7 text alpha Lup
+-43.1 -37.8 29.3 text epsilon Boo
+-7.8 -7.2 37.3 text beta UMi Kocab
+-12.1 -16.5 10.3 text alpha CrB Alphekka
+-56.7 -98.5 -47.4 text delta Sco Dschubba
+-63.9 -153.0 -82.4 text alpha Sco Antares
+-14.0 -43.4 -118.9 text alpha TrA
+-5.0 -15.8 -11.3 text epsilon Sco
+-5.3 -24.2 -7.0 text eta Oph Sabik
+-19.7 -170.7 -130.0 text lambda Sco Shaula
+-1.5 -13.9 3.1 text alpha Oph Rasalhague
+-6.0 -60.7 -56.9 text theta Sco Sargas
+-8.4 -110.2 -89.6 text kappa Sco
+-0.4 -28.2 35.4 text gamma Dra Etamin
+3.9 -36.4 -25.0 text epsilon Sgr Kaus Australis
+1.0 -6.0 4.9 text alpha Lyr Vega
+14.7 -59.9 -30.5 text sigma Sgr Nunki
+2.4 -4.5 0.8 text alpha Aql Altair
+207.4 -290.1 302.0 text gamma Cyg Sadr
+18.3 -24.8 -47.0 text alpha Pav Peacock
+451.1 -530.9 703.5 text alpha Cyg Deneb
+168.5 -113.5 35.4 text epsilon Peg Enif
+18.7 -9.9 -22.7 text alpha Gru Alnair
+33.6 -11.8 -38.1 text beta Gru
+6.4 -1.8 -3.8 text alpha PsA Fomalhaut
+52.3 -13.1 28.8 text beta Peg Scheat
+# Saw 2236-403 text 
+# Missed 0700-220 text 
+# Missed 1906+081 text 
+# Missed 1916-333 text 
+# Missed 1006-521 text 
+# Saw 0105+212 text 
+# Missed 2055-012 text 
+# Saw 1732+551 text 
+# Missed 0922-095 text 
+# Missed 1443-054 text 
+# Saw 1042-642 text 
+# Missed 0707+224 text 
+# Missed 0024+383 text 
+# Saw 1208-504 text 
+# Missed 2041-752 text 
+# Missed 0253-495 text 
+# Missed 0332-092 text 
+# Saw 0345+242 text 
+# Missed 1838+085 text 
+# Saw 0749-245 text 
+# Missed 0932-624 text 
+# Missed 1909+060 text 
+# Missed 0247-353 text 
+# Missed 1559+255 text 
+# Missed 1604-112 text 
+# Missed 1750+482 text 
+# Saw 1741+720 text 
+# Missed 0108+545 text 
+# Saw 1220-221 text 
+# Missed 0733-395 text 
+# Saw 1829-143 text 
+# Missed 2054+283 text 
+# Missed 0424+241 text 
+# Missed 0927-091 text 
+# Saw 2110+100 text 
+# Saw 1010-082 text 
+# Missed 2356+831 text 
+# Missed 0122-002 text 
+# Missed 1618-575 text 
+# Saw 1307+273 text 
+# Saw 1620-784 text 
+# Missed 0415-073 text 
+# Missed 1834-241 text 
+# Missed 0617+462 text 
+# Missed 0816+114 text 
+# Missed 2315+281 text 
+# Saw 2039+155 text 
+# Missed 1341-333 text 
+# Missed 0138+483 text 
+# Missed 2343-151 text 
+# Saw 0031-625 text 
+# Missed 1254-582 text 
+# Saw 2102-383 text 
+# Missed 0852+282 text 
+# Missed 1416-595 text 
+# Saw 2209+331 text 
+# Saw 1844+373 text 
+# Missed 1936+202 text 
+# Missed 0826+243 text 
+# Missed 0457+331 text 
+# Saw 2229+582 text 
+# Missed 1327-744 text 
+# Saw 0535-045 text 
+# Missed 1950+325 text 
+# Missed 0617-104 text 
+# Missed 1636-021 text 
+# Missed 0904+275 text 
+# Saw 1256+381 text 
+# Saw 1954-081 text 
+# Missed 0218+575 text 
+# Missed 1428-293 text 
+# Missed 2256-313 text 
+# Missed 0908-432 text 
+# Missed 1903+211 text 
+# Saw 0718-364 text 
+# Saw 0113+073 text 
+# Missed 1451+190 text 
+# Missed 0002+270 text 
+# Missed 0217+441 text 
+# Missed 1612-192 text 
+# Saw 0800-485 text 
+# Missed 0434-550 text 
+# Missed 0654-235 text 
+# Saw 0535-052 text 
+# Saw 0349+240 text 
+# Missed 0827-205 text 
+# Missed 0605-241 text 
+# Missed 1918+193 text 
+# Missed 0236+243 text 
+# Missed 1049-040 text 
+# Saw 1556-335 text 
+# Missed 0547-724 text 
+# Missed 1850-075 text 
+# Missed 1118+313 text 
+# Missed 2045+180 text 
+# Missed 0745+201 text 
+# Missed 1831-190 text 
+# Missed 1348+393 text 
+# Missed 0546-321 text 
+# Missed 0237+341 text 
+# Missed 0835+193 text 
+# Missed 0517+533 text 
+# Missed 1432-565 text 
+# Missed 0731-355 text 
+# Missed 1303-034 text 
+# Missed 1805+023 text 
+# Missed 2203-564 text 
+# Saw 1807+260 text 
+# Missed 0611+215 text 
+# Missed 1900+554 text 
+# Saw 0621-114 text 
+# Missed 1045-594 text 
+# Saw 0425+221 text 
+# Missed 0000+000 text 
+# Missed 0230-251 text 
+# Missed 0039-335 text 
+# Saw 1636+525 text 
+# Missed 1536-003 text 
+# Missed 1141+341 text 
+# Missed 2106+384 text 
+# Missed 0039+211 text 
+# Missed 2358+462 text 
+# Missed 0657-221 text 
+# Missed 1238+065 text 
+# Saw 1833-384 text 
+# Missed 0612+225 text 
+# Missed 0400-513 text 
+# Saw 1856+041 text 
+# Saw 1622+334 text 
+# Saw 2013+464 text 
+# Saw 0521-002 text 
+# Missed 2005-124 text 
+# Missed 1009-613 text 
+# Missed 1333-773 text 
+# Saw 1656+650 text 
+# Missed 0146+172 text 
+# Saw 1800+800 text 
+# Missed 0121+644 text 
+# Missed 1021+021 text 
+# Saw 1608+170 text 
+# Missed 1108+243 text 
+# Missed 1236+592 text 
+# Saw 0428+155 text 
+# Missed 0002-144 text 
+# Missed 2358+512 text 
+# Missed 1646-253 text 
+# Missed 1821-295 text 
+# Saw 0126+191 text 
+# Missed 0355+310 text 
+# Missed 1316-012 text 
+# Saw 0842-530 text 
+# Missed 0144-155 text 
+# Missed 0812-463 text 
+# Missed 1722-674 text 
+# Missed 0713-310 text 
+# Saw 0708-703 text 
+# Saw 1608+083 text 
+# Saw 1511-484 text 
+# Saw 1928+244 text 
+# Missed 0838+093 text 
+# Missed 2118-172 text 
+# Saw 1516-605 text 
+# Missed 2009+205 text 
+# Saw 1930+275 text 
+# Missed 0558+255 text 
+# Missed 0033+625 text 
+# Saw 1253-602 text 
+# Missed 0128-334 text 
+# Saw 1641+011 text 
+# Missed 1333-071 text 
+# Missed 2109+682 text 
+# Saw 1605-194 text 
+# Saw 1105-271 text 
+# Missed 0126-323 text 
+# Missed 0247-122 text 
+# Missed 0947+112 text 
+# Saw 2046+160 text 
+# Missed 0142+201 text 
+# Missed 1004-813 text 
+# Missed 0740-314 text 
+# Missed 1625+185 text 
+# Missed 0945+633 text 
+# Missed 1715-263 text 
+# Missed 1416+185 text 
+# Missed 0545+204 text 
+# Saw 0330+480 text 
+# Missed 0746+625 text 
+# Missed 1550+150 text 
+# Saw 0450-532 text 
+# Missed 1155+462 text 
+# Missed 0550+565 text 
+# Saw 1941+503 text 
+# Missed 1932+694 text 
+# Saw 1450-160 text 
+# Missed 1652+145 text 
+# Missed 2129-311 text 
+# Missed 0407+622 text 
+# Saw 2059+041 text 
+# Missed 0052-693 text 
+# Missed 0459-144 text 
+# Missed 0959+032 text 
+# Missed 0555+201 text 
+# Saw 1254-571 text 
+# Saw 1654-422 text 
+# Missed 0047+205 text 

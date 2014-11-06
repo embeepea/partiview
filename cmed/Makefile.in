@@ -1,0 +1,57 @@
+# Makefile for cmed - please do not edit if the file is named "Makefile",
+# since configure would overwrite it on the next configure.
+# Edit "Makefile.in", and run configure instead!!!
+# If you must change configure.in, run autoconf, and then configure etc.
+
+# the following variables are under AC control
+# KIRA_INC, KIRA_LIB
+# FLTK_INC, FLTK_LIB
+# PV_FLAGS
+
+SHELL = /bin/sh
+
+# TARGET
+TARGET   = cmed
+
+FLTK_INC = @FLTK_INC@
+FLTK_LIB = @FLTK_LIB@
+
+
+# FLAGS and BINARIES
+CC          = @CC@
+CXX	    = @CXX@
+LINK        = ${CXX} ${OTYPE}
+MAKEGUI	    = @MAKEGUI@
+
+GL_LIB	    = @GLLIBS@
+X_LIB	    = @XLIBS@
+M_LIB	    = -lm
+LIBS        = $(FLTK_LIB) $(GL_LIB) $(X_LIB) $(M_LIB)
+
+DEFS	    = $(PV_FLAGS)
+INCS	    = $(FLTK_INC)
+OPT	    = -g -O2
+CFLAGS	    = $(OPT) $(DEFS) $(INCS) @CFLAGS@
+CXXFLAGS    = $(OPT) $(DEFS) $(INCS) @CXXFLAGS@
+
+APP_CSRCS   = hsb.c
+APP_CXXSRCS = cmed.C cmedpanel.C CMedit.C
+
+APP_OBJS    = cmed.o CMedit.o cmedpanel.o hsb.o
+
+$(TARGET):  $(APP_OBJS)
+	$(CXX) -o $@ $(OPT) $(OTYPE)  $(APP_OBJS) $(LIBS)
+	$(MAKEGUI)
+
+clean:
+	rm -f $(TARGET) $(APP_OBJS)
+
+dep: depend
+depend:	_always
+	rm -f Makedepend
+	$(CC) -M $(CFLAGS) $(APP_CSRCS) > Makedepend
+	$(CXX) -M $(CXXFLAGS) $(APP_CXXSRCS) >> Makedepend
+
+_always:
+
+include Makedepend

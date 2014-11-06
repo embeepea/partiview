@@ -1,0 +1,100 @@
+# $Log: paper.txt,v $
+# Revision 1.1  2002/06/26 19:31:53  slevy
+# Maybe this will turn into an IAU208 paper about partiview.
+# Figures to appear in same partiview/doc/iau208 directory.
+#
+
+This paper describes partiview, a software tool for 
+interactive graphical display of collections of particles
+in 3-space, and its application in studying the results
+of N-body collisional stellar dynamics calculations from Starlab.
+
+
+ ---
+
+
+Data are provided as a (possibly time-varying) collection
+of particles, each with a 3-D position and an arbitrary number
+of other floating-point attributes ("fields"), and a configuration script
+specifying which fields to map into visible properties,
+including color and luminosity.  For example,
+   color Tlog 3.2 4.5
+assigns colors by using the Tlog field (assuming one had been defined)
+as an index into the user-supplied color table, using a linear mapping
+that associates 3.2 and 4.5 with the colormap's endpoints.
+
+From each particle's luminosity and distance from the current
+viewpoint, partiview draws a dot whose screen brightness and size
+suggest its computed apparent brightness.  With dots up to a few
+pixels across, apparent brightness may usefully range by several
+hundredfold, and larger ranges can be suggested by adding textured
+polygons -- "haloes" -- whose size varies similarly.  The result
+is good enough to give plausible naked-eye starfields given a table
+of stellar luminosities, colors and 3-D positions as in [figure 1],
+drawn using Hipparcos data.
+
+This sort of viewpoint-dependent apparent brightness
+is a feature that few other scientific visualization
+packages don't seem to offer, even though it's
+inexpensive to compute and can be useful.
+(Where not useful, as when making orthographic
+plots of 3-D scenes, it can be switched off in partiview.)
+
+Some simple database-like operations are provided.
+For example, one can display only the subset of particles where
+some (single) field has a given range or set of values,
+or look at particles only within a given rectangular subvolume,
+and can print a histogram of values of a field,
+over all particles or over the selected subset.
+
+
+           -----
+
+The same "parti" graphical and data-handling code is embedded
+in multiple guises for different computing environments.
+The same data and configuration scripts, and most of the same
+interactive commands, work in both.  Figure [1] shows the
+desk- (or lap-)top version, mouse and keyboard driven
+with conventional buttons and sliders for common controls,
+available for Unix-like systems and for Windows.
+Figure [2] shows the virtual-reality version,
+on Silicon Graphics computers with multiple graphics pipes.
+
+This particle display system was originally written for the virtual
+choreography system Virtual Director [ref] for the CAVE [ref]
+virtual-reality room at NCSA, so that we could choreograph animated
+flights through a couple of particle models -- a digital Milky Way
+model being assembled at the Hayden Planetarium, and a galaxy catalog
+created by Brent Tully -- for educational animations we had agreed to make.
+
+At the same time, the Hayden planetarium was building a Silicon
+Graphics-based display for their new dome; this turned out sufficiently
+CAVE-like that the same software runs in the Hayden dome and is
+regularly used there.
+
+The Virtual Director framework also provides for networked
+collaboration, where participants can share viewpoints, animation
+paths, display controls, etc.; this has proven helpful for bringing
+together distributed expertise, and we've used it between Illinois,
+Hawaii, New York and elsewhere on several occasions, most recently
+when designing some animations for the 2002 Hayden space show.
+
+       -----
+
+   Examining Starlab Traces
+
+Stellar dynamics simulations done in Starlab [ref?]
+produce "traces", recording various information about each star
+as a function of time: physical properties such as mass,
+luminosity and temperature, state vectors and time derivatives up to jerk [right??],
+and hierarchical descriptions of interacting groups.
+
+Partiview, coupled with the Starlab libraries to read and interpolate
+traces, is adapted to display these properties as in [fig 3 of primbin16].
+
+Each star's dynamical state is sufficiently finely sampled in time
+to allow accurate interpolation, generally at some fixed multiple of the
+internal simulation timestep.   Thus stars in dense regions
+may have far more frequent trace entries than isolated stars.
+The Starlab libraries offer functions to interpolate the state of the
+simulation at any time.

@@ -1,0 +1,119 @@
+#! /usr/bin/perl
+
+$PBH_MAGIC = 0xffffff98;
+$swapendian = (pack("N",1) ne pack("L",1));
+
+while(@ARGV && $ARGV[0] =~ /^-[aA]/) {
+    shift, $dataname = shift, next if $ARGV[0] =~ /^-a/;
+    shift, push(@attrrange, shift), next if $ARGV[0] =~ /^-A/;
+}
+
+
+$infmt = $ARGV[0];
+($min, $max, $incr) = ($ARGV[1] =~ /^(\d+)-?(\d*)%?(\d*)/);
+
+foreach $_ ( split(/,/, join(",", @attrrange)) ) {
+    tr/ //d;
+    ($name, $attr0, $junk, $attr1) =
+	(/^(\w+)=?([-+]?[.\d]+(e[-+]\d+)?)-(.*)/);
+    next unless $name;
+    $attr0 = 0, $attr1 = 1 if $attr1 eq "";
+    $attrscale{$name} = ($attr1 == $attr0) ? 0 : 1 / ($attr1 - $attr0);
+    $attrmin{$name} = $attr0;
+}
+
+$inf = sprintf($ARGV[0], $min);
+
+unless( open(INF, $inf) ) {
+    print STDERR "Can't open input file \"$inf\"\n" if $infmt;
+    print STDERR <<EOF;
+Usage: $0 [-a attrname] informat.pb [min-max%incr]  > out.speck
+Converts partadv binary particle file(s) (with or without attribute)
+to time-dependent partiview (.speck) format.
+EOF
+    exit(1);
+}
+
+$nfields = $dataname ? 5 : 4;
+$readunit = $dataname ? 5*4 : 4*4;
+
+@min = (1e20) x $nfields;
+@max = (-1e20) x $nfields;
+@sum = (0) x $nfields;
+
+$total += $npts;
+
+$stepno = 0;
+for($t = $min; $t <= $max; $t += $incr, $stepno++) {
+
+    $inf = sprintf($infmt, $t);
+    open(INF, $inf) or die "$0: $inf: cannot open input: $!, exiting";
+
+    # Check file format: old or new?
+    read(INF, $header, 3*4);
+
+    ($magicbe) = unpack("N", $header);
+    ($magicle) = unpack("V", $header);
+    if($magicbe == $PBH_MAGIC) {
+	($magic, $dataoff, $attrin) = unpack("N*", $header);
+	$inswap = $swapendian;
+    } elsif($magicle == $PBH_MAGIC) {
+	($magic, $dataoff, $attrin) = unpack("V*", $header);
+	$inswap = !$swapendian;
+    } else {
+	$dataoff = 0;
+    }
+
+    if($dataoff > 0) {
+	read(INF, $attrstrs, $dataoff-3*4);
+	@attrname = ( split(/\0/, $attrstrs) )[ 0..$attrin-1 ];
+#	if($t == $min) {
+#	    for($i = 0; $i < @attrname; $i++) {
+#		printf "datavar %d %s\n", $i+2, $attrname[$i];
+#	    }
+#	}
+    }
+
+    $readunit = (4 + $attrin) * 4;
+
+    $len = ( stat($inf) )[7];
+    if($len < 0) {
+	print STDERR "$0: input file $inf must be a real file\n";
+	exit(1);
+    }
+    unless(($len-$dataoff) % $readunit == 0) {
+	print STDERR "File $inf is $len bytes long, not a multiple of $readunit.  Need -a parameter?\n";
+	exit(1);
+    }
+
+    $npts = ($len-$dataoff) / $readunit;
+
+    for($i = 0; $i < $npts; $i++) {
+	if(read(INF, $rec, $readunit) < $readunit) {
+	    print STDERR "Error reading point $i of 0..", $npts-1, "\n";
+	    last;
+	}
+	$rec = pack("N*", unpack("V*", $rec)) if $inswap;
+	@ip = unpack("Lf*", $rec);
+	for($j = 0; $j < @ip; $j++) {
+	    my($v) = $ip[$j];
+	    $sum[$j] += $v;
+	    $min[$j] = $v if $min[$j] > $v;
+	    $max[$j] = $v if $max[$j] < $v;
+	}
+    }
+    $total += $npts;
+}
+
+@what = split(' ', 'id x y z');
+push(@what, @attrname);
+
+for($j = 0; $j < @sum; $j++) {
+    $amin = $attrmin{$what[$j]} || 0;
+    $ascale = $attrscale{$what[$j]} || 1;
+    printf "%.5g %.5g  %.5g # %s\n",
+	($min[$j]-$amin)*$ascale,
+	($max[$j]-$amin)*$ascale,
+	($sum[$j]/$total-$amin)*$ascale,
+	$what[$j];
+}

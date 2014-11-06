@@ -1,0 +1,99 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0104 
+header_name {.H} 
+code_name {.C}
+decl {\#include "cmed.H"} {} 
+
+Function {make_window()} {open
+} {
+  Fl_Window {} {open
+    xywh {146 29 390 450} type Double resizable visible
+  } {
+    Fl_Button undobutton {
+      label Undo
+      callback undo_cb
+      xywh {5 0 40 25} down_box DOWN_BOX
+    }
+    Fl_Button loadbtn {
+      label Load
+      callback fload_cb
+      xywh {55 0 45 25}
+    }
+    Fl_Button savebtn {
+      label Save
+      callback fsave_cb
+      xywh {110 0 45 25}
+    }
+    Fl_Slider forceslider {
+      label Force
+      callback lerp_cb
+      xywh {205 0 75 25} type {Horz Knob} selection_color 1 align 8 minimum 0.05 value 0.5
+    }
+    Fl_Button rgbmode {
+      label HSB
+      callback rgbmode_cb
+      xywh {330 0 35 25} labelsize 12 align 16
+    }
+    Fl_Input fnamebox {
+      label {File:}
+      callback input_cb
+      xywh {30 35 355 25} labeltype ENGRAVED_LABEL labelsize 12 when 10
+    }
+    Fl_Box {cshow.hsblbls[0]} {
+      label {Hue (L)}
+      xywh {30 60 80 20} box FLAT_BOX color 34 labelfont 1 labelsize 12 labelcolor 3
+    }
+    Fl_Box {cshow.hsblbls[1]} {
+      label {Sat(M)}
+      xywh {115 60 75 20} box FLAT_BOX color 34 labelfont 1 labelsize 12 labelcolor 2
+    }
+    Fl_Box {cshow.hsblbls[2]} {
+      label {Bright(R)}
+      xywh {195 60 75 20} box FLAT_BOX color 34 labelfont 1 labelsize 12 labelcolor 235
+    }
+    Fl_Box {} {
+      label {Alpha(shift)}
+      xywh {275 60 80 20} box FLAT_BOX color 34 labelfont 1 labelsize 12 labelcolor 7
+    }
+    Fl_Box cmedit {
+      xywh {5 85 380 270} box FLAT_BOX resizable
+      class {class CMedit}
+    }
+    Fl_Box {cshow.color} {
+      xywh {60 360 50 40} box DOWN_BOX labeltype NO_LABEL
+      class colorpatch
+    }
+    Fl_Value_Input {cshow.cindex} {
+      label {  (index}
+      callback report_cb
+      xywh {5 375 50 25} box FLAT_BOX color 16 align 1 maximum 0 step 1 textsize 12
+    }
+    Fl_Output {cshow.hsba} {
+      label HSBA
+      xywh {115 375 120 25} box FLAT_BOX color 16 align 1 textsize 11
+    }
+    Fl_Output {cshow.rgba} {
+      label rgb
+      xywh {245 375 125 25} box FLAT_BOX color 16 align 1 textsize 11
+    }
+    Fl_Value_Input {cshow.postscalein} {
+      label {* Amax}
+      callback ascale_cb
+      xywh {315 420 65 25} align 5
+    }
+    Fl_Value_Input {cshow.postexponin} {
+      label {**  expon  )}
+      callback ascale_cb selected
+      xywh {235 420 75 25} align 5
+    }
+    Fl_Value_Input {cshow.cmentin} {
+      label cmapsize
+      callback ncment_cb
+      xywh {5 420 55 25} box ENGRAVED_BOX color 25 align 5 when 4
+    }
+    Fl_Output {cshow.scaleout} {
+      label {  Aout  =  ( Ain}
+      xywh {135 420 95 25} box FLAT_BOX color 16 align 5
+    }
+  }
+} 

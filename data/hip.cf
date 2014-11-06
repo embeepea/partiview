@@ -1,0 +1,20 @@
+#! /usr/bin/env partiview
+filepath +:../hipcat
+read hipbright.speck
+read hipbright.label
+texture -M 1 sol8.sgi
+eval labels off
+eval cmap colorbv.cmap
+eval lum lum 0 1
+eval polylumvar point-size .1 area
+eval polysides 4
+eval polymin 2 2048
+eval color color -.5 2.2
+eval psize 5000
+eval slum 5
+eval every 1
+eval fovy 40
+eval jump .1 -1.5 -.1 70 -110 -110
+eval clip .1 7000
+eval lsize .15
+eval laxes off

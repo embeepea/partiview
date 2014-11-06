@@ -1,0 +1,423 @@
+dnl configure.in file for "partiview"
+dnl == Process this file with autoconf to produce a configure script ==
+dnl ---------------------------------------------------------------------------
+
+AC_INIT
+
+AC_MSG_CHECKING([partiview])
+AC_CANONICAL_HOST()
+AC_CONFIG_SRCDIR([partibrains.c])
+
+AC_CONFIG_HEADER(config.h)
+
+dnl -- checks for programs
+dnl -- checks for libraries
+dnl -- checks for header files
+dnl -- checks for typedefs
+dnl -- checks for structures
+dnl -- checks for compiler characteristics
+dnl -- checks for library functions
+dnl -- checks for system services
+
+
+AC_HEADER_STDC
+AC_CHECK_FUNCS(strchr memcpy snprintf strcasecmp rint sqrtf)
+AC_CHECK_HEADERS(malloc.h zlib.h)
+AC_FUNC_ALLOCA
+
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+
+AC_ARG_PROGRAM
+
+
+
+AC_ARG_ENABLE(debug, [  --enable-debug          compile for debugging], ok=$enableval, ok=no)
+if test "$ok" = "yes"; then
+        CFLAGS="${CFLAGS} -g"
+        LDFLAGS="${LDFLAGS} -g"
+        # should we define DEBUG too?
+fi
+
+dnl pthreads
+AC_ARG_ENABLE(threads, [  --enable-threads          use threading], ok=$enableval, ok=no)
+if test yes = $ok; then
+dnl "aclocal" finds acx_pthread.m4 and includes it, so we can use ACX_PTHREAD here.
+	AC_CHECK_HEADERS(pthread.h)
+	ACX_PTHREAD([THREADLIBS="$PTHREAD_LIBS"
+		     PTHREAD_CFLAGS="$PTHREAD_CFLAGS"
+		     CC="$PTHREAD_CC"])
+
+	if test -z "$THREADLIBS$PTHREAD_CFLAGS"; then
+		AC_MSG_WARN([couldn't find threads library for --enable-threads])
+	fi
+	AC_DEFINE(HAVE_THREADS, 1, [Define if we have a threads library.])
+fi
+AC_SUBST(THREADLIBS)
+AC_SUBST(PTHREAD_CFLAGS)
+AC_SUBST(HAVE_THREADS)
+
+
+AC_ARG_WITH(glew, [  --with-glew[=dir]  Use GLEW library -- enables vertex shaders.  Searches in dir/lib and dir/include if dir given.], with_glew=$withval, with_glew=no)
+
+AC_ARG_WITH(mesa, [  --with-mesa        force the use of Mesa instead of other graphics libs], with_mesa=$withval, with_mesa=maybe)
+
+dnl No, to compile for the CAVE you need a lot more than this can do... -slevy
+dnl AC_ARG_WITH(cave, [  --enable-cave      compile for CAVE], with_cave=$enableval, with_cave=no)
+
+dnl ---------------------------------------------------------------------
+dnl             Building on Windows under MINGW32?  Used below.
+AC_DIAGNOSE([obsolete],[AC_MINGW32 is obsolete: use AC_CANONICAL_HOST and $host_os])
+case "$host_os$OSTYPE" in
+  *mingw32*|*msys* ) MINGW32=yes;;
+          * ) MINGW32=;;
+esac
+
+
+if test -n "$MINGW32"; then
+	PV_FLAGS="-D_WIN32"
+	PORT_OBJS="winjunk.o"
+else
+	# other OS cases later?
+	PV_FLAGS="-Dunix"
+	PORT_OBJS=""
+fi
+AC_SUBST(PORT_OBJS)
+
+dnl ---------------------------------------------------------------------
+dnl             Check for basic X windows stuff
+AC_PATH_X
+AC_PATH_XTRA
+CFLAGS="$CFLAGS $X_CFLAGS"
+if test -z "$X_LIBS" && test "yes" = "$MINGW32"; then
+	# Stuff MinGW system libs into XLIBS
+	XLIBS="-lgdi32 -lkernel32 -lwsock32 -luser32 -lole32 -luuid -lcomctl32"
+else
+	XLIBS="$X_LIBS $X_PRE_LIBS -lXext -lX11 $X_EXTRA_LIBS"
+fi
+AC_SUBST(XLIBS)
+
+
+dnl ---------------------------------------------------------------------
+dnl             Check for FLTK
+AC_ARG_WITH(fltk, [ --with-fltk=<d>    find FLTK in -I<d>/include/FL -L<d>/lib ], with_fltk=$withval, with_fltk=/usr/local)
+
+
+if test -n "$with_fltk" && test -d "$with_fltk"; then
+	# maybe should test both $with_fltk and the include directory therein??
+	case "$with_fltk" in
+	  */) with_fltk=`expr "$with_fltk" : '\(.*\)/$'` ;;
+	esac
+	if test -x "$with_fltk/fltk-config"; then
+dnl
+	   FLTK_INC="`$with_fltk/fltk-config --use-gl --use-images --cxxflags`"
+	   FLTK_LIB="`$with_fltk/fltk-config --use-gl --use-images --ldflags`"
+	else
+	   FLTK_INC="`$with_fltk/fltk-config --use-gl --use-images --cxxflags`"
+	   FLTK_LIB="`$with_fltk/fltk-config --use-gl --use-images --ldflags`"
+	fi
+
+else
+dnl otherwise we'd better be able to find fltk-config in $PATH somewhere
+       FLTK_INC="`$with_fltk/fltk-config --use-gl --use-images --cxxflags`"
+       FLTK_LIB="`$with_fltk/fltk-config --use-gl --use-images --ldflags`"
+fi
+
+if test -z "$FLTK_INC"; then
+    AC_MSG_WARN("Couldn't find fltk-config -- is fltk 1.1.x (or later) installed?")
+fi
+
+CXXFLAGS="$CXXFLAGS $FLTK_INC"
+CFLAGS="$CFLAGS $FLTK_INC"
+AC_CHECK_HEADERS(png.h jpeglib.h)
+
+
+#----------- as of partiview 0.7.04 - marx: ------------------------------------
+#we no longer support old file chooser so we deleted support for it from this file
+#in any event you should be on fltk release 1.1.x (not 2.x).
+# the library fltk_images did not exist prior to 1.1.x used to determine relase == 1.1.x
+if test -f "$with_fltk/lib/libfltk_images.a" || \
+   test -f "$with_fltk/lib/libfltk_images.so"; then
+   :
+   else if test -n "$with_fltk" && test -d "$with_fltk"; then
+	AC_MSG_WARN("$with_fltk : we do not support fltk on releases earlier than 1.1.x. you must be on fltk release 1.1.x")
+   fi
+fi
+#----------end as of partiview 0.7.04 - marx: -----------------------------------
+
+
+
+AC_SUBST(FLTK_INC)
+AC_SUBST(FLTK_LIB)
+
+
+dnl ---------------------------------------------------------------------
+dnl 3D Graphics Libraries (see also vis5d's configure.in)
+
+GLLIBS=""
+
+# First, look for OpenGL or Mesa:
+if test "$with_mesa" != "yes"; then
+        AC_CHECK_LIB(GL, glBegin,
+            AC_CHECK_LIB(GLU, gluProject, GLLIBS="-lGLU -lGL",
+                         :, -lGL $XLIBS -lm), :, $XLIBS -lm)
+fi
+if test -z "$GLLIBS" && test "no" != "$with_mesa"; then
+        AC_CHECK_LIB(MesaGL, glBegin,
+            AC_CHECK_LIB(MesaGLU, gluProject, GLLIBS=[-lMesaGLU -lMesaGL],
+                         :, -lMesaGL $XLIBS -lm), :, $XLIBS -lm)
+fi
+if test -z "$GLLIBS" && test -n "$MINGW32"; then
+	dnl Test for both -lglu32 and -lopengl32 together.
+	dnl Doesn't seem to work to use AC_CHECK_LIB(lib, func) here
+	dnl on Windows, so we use AC_CHECK_LIB([],[main],[],[],[])ac_cv_lib_=ac_cv_lib__main  even though it's obsolete.
+	dnl Feh.
+	AC_CHECK_LIB([opengl32],[main],[GLLIBS="-lopengl32 -lglu32"],[],[-lglu32 $XLIBS -lm])ac_cv_lib_opengl32=ac_cv_lib_opengl32_main
+
+fi
+if test "$with_mesa" = "yes"; then
+        AC_CHECK_LIB(GL, glBegin,
+            AC_CHECK_LIB(GLU, gluProject, GLLIBS="-lGLU -lGL",
+                         :, -lGL $XLIBS -lm), :, $XLIBS -lm)
+fi
+
+MAKEGUI=true
+if test -d "/System/Library"; then
+	# Maybe MacOS X
+
+        XLIBS=""
+	AC_SEARCH_LIBS(sqrtf, [mx], AC_DEFINE(HAVE_SQRTF) XLIBS="-lmx")
+
+        GLLIBS="-framework AGL -framework OpenGL -framework Cocoa -framework ApplicationServices"
+	PV_FLAGS="-Dunix -DHAVE_BUILTIN_ALLOCA"
+	MAKEGUI="./make-app.sh \$(TARGET)"
+fi
+AC_SUBST(MAKEGUI)
+
+if test -n "$GLLIBS"; then
+        AC_DEFINE(HAVE_OPENGL, [], [Define if we have the (required) OpenGL library])
+else
+        AC_MSG_ERROR([couldn't find OpenGL libraries!])
+        if test "$with_mesa" = "yes"; then
+                AC_MSG_ERROR([couldn't find Mesa library])
+        fi
+fi
+
+if test -z "$GLLIBS"; then
+        echo "****************************************************"
+        echo "You need to install a 3D graphics library, preferably"
+        echo "the free OpenGL replacement, Mesa.  You can download"
+        echo "Mesa from the Mesa home page:"
+        echo "              http://www.mesa3d.org/"
+        echo "and install it by running:"
+        echo "       ./configure && make && su -c 'make install'"
+        echo "in the Mesa directory."
+
+        if test -r /sbin/ldconfig; then
+                echo "You may also need to run /sbin/ldconfig as root"
+                echo "to update the system after installing Mesa."
+                if test -r /etc/ld.so.conf; then
+                if test -z "`grep /usr/local/lib /etc/ld.so.conf`"; then
+                echo "(First, add '/usr/local/lib' to /etc/ld.so.conf if"
+                echo "you installed Mesa under /usr/local, the default.)"
+                fi
+                fi
+        fi
+        echo "****************************************************"
+dnl        AC_MSG_ERROR([couldn't find 3D graphics library])
+fi
+AC_SUBST(GLLIBS)
+
+dnl -- Check for any particular functions in the GL libs:
+save_LIBS="$LIBS"
+LIBS="$GLLIBS $XLIBS $LIBS"
+AC_CHECK_FUNCS(XMesaGetBackBuffer)
+LIBS="$save_LIBS"
+  
+
+dnl AC_CHECK_FUNC(vprintf, AC_DEFINE(HAVE_VPRINTF))
+dnl if test "$ac_cv_func_vprintf" != yes; then
+
+
+dnl AC_CHECK_FUNC(_doprnt, AC_DEFINE(HAVE_DOPRNT))
+dnl fi
+dnl ---------------------------------------------------------------------
+
+
+dnl Checks for libraries.
+
+dnl Checks for header files.
+
+
+AC_HEADER_DIRENT
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(fcntl.h limits.h malloc.h sgtty.h strings.h sys/file.h sys/ioctl.h sys/time.h unistd.h values.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+AC_STRUCT_TM
+
+dnl Checks for library functions.
+AC_TYPE_GETGROUPS
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_MEMCMP
+AC_FUNC_MMAP
+AC_TYPE_SIGNAL
+AC_FUNC_FORK([])
+AC_FUNC_VPRINTF
+
+AC_SEARCH_LIBS(sqrtf, [m], AC_DEFINE(HAVE_SQRTF))
+AC_CHECK_FUNCS(strchr memcpy snprintf strcasecmp rint)
+AC_CHECK_FUNCS(ftime gethostname gettimeofday getwd mkdir select strdup strtod strtol strtoul)
+
+AC_C_BIGENDIAN
+
+dnl -- GLEW stuff for vertex shaders
+
+
+if test -n "$with_glew" && test "$with_glew" != "no"; then
+    if test -d "$with_glew"; then
+	AC_DEFINE(HAVE_LIBGLEW, [], [Define if GLEW extension library is present])
+	if test -n "$MINGW32"; then
+#	    GLEW_LIB="$with_glew/lib/libglew32.dll.a"
+	    GLEW_LIB="$with_glew/lib/libglew32.a"
+	else
+	    GLEW_LIB="$with_glew/lib/libGLEW.a"
+	fi
+	GLEW_INC="-I$with_glew/include"
+    else
+	if test -n "$MINGW32"; then
+	    AC_CHECK_LIB(GLEW, glewInit, GLEW_LIB="-lglew32.dll", [], $GLLIBS)
+	else
+	    AC_CHECK_LIB(GLEW, glewInit, GLEW_LIB="-lGLEW", [], $GLLIBS)
+	fi
+    fi
+fi
+AC_SUBST(GLEW_INC)
+AC_SUBST(GLEW_LIB)
+
+dnl -- starlab stuff
+
+AC_ARG_WITH(kira, [  --with-kira   force the use of KIRA], with_kira=$withval, with_kira=maybe)
+AC_SUBST(KIRA_INC)
+AC_SUBST(KIRA_LIB)
+AC_SUBST(PV_FLAGS)
+
+AC_SUBST(CC)
+AC_SUBST(CXX)
+
+starlab_path="$with_kira"
+if test "$with_kira" = "maybe" || test "$with_kira" = "yes"; then
+   if test -d "$STARLAB_PATH"; then
+      starlab_path="$STARLAB_PATH"
+   else
+      echo No STARLAB_PATH found, KIRA support not selected
+   fi
+fi
+
+if test -n "$starlab_path" && test -d "$starlab_path"; then
+      echo "Configuring with starlab=$starlab_path" 
+      KIRA_INC=-I$starlab_path/include
+      KIRA_LIB="-L$starlab_path/usr/lib/starlab -ltdyn -ldyn -lnode -lsstar -lstd"
+      PV_FLAGS="$PV_FLAGS -DUSE_KIRA"
+	# darn, we can't check in non-standard PATH's???? - next line won't work
+dnl      AC_CHECK_LIB(tdyn, open_parti,:, AC_MSG_ERROR([could not find StarLab's tdyn library]))
+else
+   echo NOTE: No Starlab selected
+fi
+
+AC_ARG_WITH(ieeeio, [  --with-ieeeio[=DIR]  Use IEEEIO], with_ieeeio=$withval)
+AC_ARG_WITH(ieeeio-lib, [    --with-ieeeio-lib=LDOPTS  (-LDIR/lib -lieeeio) ],
+		[IEEEIO_LIB="$withval"; with_ieeeio=yes])
+AC_ARG_WITH(ieeeio-inc, [    --with-ieeeio-inc=INCOPTS (-IDIR/include)],
+		[IEEEIO_INC="$withval"; with_ieeeio=yes])
+
+if test -n "$with_ieeeio" && test "no" != $with_ieeeio; then
+    if test "yes" = "$with_ieeeio"; then
+	IEEEIO_LIB=${IEEEIO_LIB:-"-lieeeio"}
+    else
+	IEEEIO_INC=${IEEEIO_INC:-"-I$with_ieeeio/include"}
+	IEEEIO_LIB=${IEEEIO_LIB:-"-L$with_ieeeio/lib -lieeeio"}
+    fi
+    PV_FLAGS="$PV_FLAGS -DUSE_IEEEIO"
+fi
+AC_SUBST(IEEEIO_INC)
+AC_SUBST(IEEEIO_LIB)
+
+AC_ARG_WITH(elumens, [  --with-elumens[=DIR]  Use Elumens spiclops library], with_elumens=$withval)
+AC_ARG_WITH(elumens-lib, [    --with-elumens-lib=LDOPTS (-LDIR/lib -lspiclops)],
+		[ELUMENS_LIB="$withval"; with_elumens=yes])
+AC_ARG_WITH(elumens-inc, [    --with-elumens-inc=INCOPTS (-IDIR/include)],
+		[ELUMENS_INC="$withval"; with_elumens=yes])
+
+if test -n "$with_elumens" && test "no" != "$with_elumens"; then
+    if test "yes" = "$with_elumens"; then
+	ELUMENS_LIB=${ELUMENS_LIB:-"-lspiclops"}
+    else
+	ELUMENS_LIB=${ELUMENS_LIB:-"-L$with_elumens/lib -lspiclops"}
+	ELUMENS_INC=${ELUMENS_INC:-"-I$with_elumens/include"}
+    fi
+    PV_FLAGS="$PV_FLAGS -DUSE_ELUMENS"
+fi
+AC_SUBST(ELUMENS_INC)
+AC_SUBST(ELUMENS_LIB)
+dnl ---------------------------------------------------------------------
+dnl             Check for CAVE
+AC_ARG_WITH(cave, [ --with-cave=<d>    find CAVE in -I<d>/include -L<d>/lib ], with_cave=$withval)
+
+if test -n "$with_cave" && test -d "$with_cave"; then
+	# maybe should test both $with_cave and the include directory therein??
+	if test -f "$with_cave/include/cave_ogl.h"; then
+	   CAVE_INC=-I$with_cave/include
+ 	elif test -f "$with_cave/cave_ogl.h"; then
+	   CAVE_INC=-I$with_cave
+	else
+	   AC_MSG_ERROR("Could not find cave_ogl.h for the cave library")
+	fi
+	CAVE_LIB="-L$with_cave/lib -lcave"
+	if test -f "$with_cave/lib/libcave_ogl.a" || \
+	   test -f "$with_cave/lib/libcave_ogl.so"; then
+		CAVE_LIB="-L$with_cave/lib -lcave_ogl"
+	fi
+	PV_FLAGS="$PV_FLAGS -DCAVE"
+fi
+
+AC_SUBST(CAVE_INC)
+AC_SUBST(CAVE_LIB)
+
+AC_ARG_WITH(nethack, [  --with-nethack  Accept toy network control packets],
+	PV_FLAGS="$PV_FLAGS -DUSE_NETHACK")
+
+PV_FLAGS="$PV_FLAGS -DUSE_WARP -DUSE_CONSTE"
+
+AC_ARG_WITH(model, [  --with-model  Accept Maya obj models], with_model=$withval, with_model=yes)
+if test -n "$with_model" && test "no" != "$with_model"; then
+    PV_FLAGS="$PV_FLAGS -DUSE_MODEL"
+fi
+
+
+dnl -- test for NEMO
+
+if test -f "$NEMOBIN/cc"; then
+  echo "Warning, old \$NEMOBIN/cc present, it may conflict with your install"
+fi
+
+
+AC_CONFIG_FILES([Makefile  ../cmed/Makefile])
+AC_OUTPUT
+
+dnl ensure that "Makedepend" exists but don't put anything into it
+dnl and force user to "make depend" to fill it in, since we're reconfiguring.
+
+rm -f depended Makedepend ../cmed/depended/Makedepend
+touch Makedepend ../cmed/Makedepend

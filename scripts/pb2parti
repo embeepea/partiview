@@ -1,0 +1,126 @@
+#! /usr/bin/perl
+
+$INTEGERARRAY = 1;
+$DOUBLEARRAY  = 3;
+$VECTORARRAY  = 5;
+
+$PBH_MAGIC = 0xffffff98;
+
+$swapendian = (pack("N",1) ne pack("L",1));
+@attrname = ();
+
+while($ARGV[0] =~ /^-[a]/) {
+    shift, push(@attrname, shift), next if $ARGV[0] =~ /^-a/;
+}
+
+
+$infmt = $ARGV[0];
+($min, $max, $incr) = ($ARGV[1] =~ /^(\d+)-?(\d*)%?(\d*)/);
+$min = 0 unless $min ne "";
+$max = $min unless $max ne "";
+$incr = 1 unless $incr != 0;
+
+
+$infmt = "-" if $infmt eq "" && ! -t STDIN;
+$inf = sprintf($ARGV[0], $min);
+
+unless( open(INF, $inf) ) {
+    print STDERR "Can't open input file \"$inf\"\n" if $infmt;
+    print STDERR <<EOF;
+Usage: $0 [-a attrname] informat.pb [min-max%incr]  > out.speck
+Converts partadv binary particle file(s) (with or without attribute)
+to time-dependent partiview (.speck) format.
+EOF
+}
+#if(-t STDOUT) {
+#    print STDERR "Don't want to write .speck data to a terminal!\n";
+#    exit(1);
+#}
+
+$attrin = scalar @attrname;
+$attrout = @attrname && $attrname[0] ne "-" ? 1 : 0;
+
+print "#! /usr/bin/env partiview\n\n";
+print "datavar 0 id\n";
+print "datavar 1 age\n";
+print "datavar 2 $dataname\n" if $dataname;
+print "\n";
+
+$stepno = 0;
+for($t = $min; $t <= $max; $t += $incr, $stepno++) {
+
+    $inf = sprintf($infmt, $t);
+    open(INF, $inf) or die "$0: $inf: cannot open input: $!, exiting";
+
+    # Check file format: old or new?
+    read(INF, $header, 3*4);
+
+    ($magicbe) = unpack("N", $header);
+    ($magicle) = unpack("V", $header);
+    if($magicbe == $PBH_MAGIC) {
+	($magic, $dataoff, $attrin) = unpack("N*", $header);
+	$inswap = $swapendian;
+    } elsif($magicle == $PBH_MAGIC) {
+	($magic, $dataoff, $attrin) = unpack("V*", $header);
+	$inswap = !$swapendian;
+    } else {
+	$dataoff = 0;
+    }
+    if($dataoff > 0) {
+	read(INF, $attrstrs, $dataoff-3*4);
+	@attrname = ( split(/\0/, $attrstrs) )[ 0..$attrin-1 ];
+	if($t == $min) {
+	    for($i = 0; $i < @attrname; $i++) {
+		printf "datavar %d %s\n", $i+2, $attrname[$i];
+	    }
+	}
+	$preload = "";
+    } else {
+	$preload = $header;
+    }
+    $readunit = (4 + $attrin) * 4;
+
+    #seek(INF, $dataoff, 0);
+
+    $len = ( stat($inf) )[7];
+    if($len < 0) {
+	print STDERR "$0: input file $inf must be a real file\n";
+	exit(1);
+    }
+    if(tell(INF) && ($len-$dataoff) % $readunit != 0) {
+	print STDERR "File $inf is $len bytes long, not a multiple of $readunit.  Need -a parameter?\n";
+	exit(1);
+    }
+
+    $attrfmt = " %.6g" x $attrin;
+
+    print "\ndatatime $stepno # $t\n\n";
+    if($preload ne "") {
+	if(read(INF, $rec, $readunit-length($preload)) < $readunit-length($preload)) {
+	    print STDERR "Error reading first pcle\n";
+	    exit(1);
+	}
+	$rec = $preload . $rec;
+	&putrec;
+    }
+    while(read(INF, $rec, $readunit) == $readunit) {
+	&putrec;
+    }
+}
+
+sub putrec {
+    $rec = pack("N*", unpack("V*", $rec)) if $inswap;
+    ($id, @v) = unpack("Lf*", $rec);
+    @p = splice(@v, 0, 3);
+    $born[$id] = $t unless defined($born[$id]);
+    printf "%.8g %.8g %.8g %d %.3g", @p, $id, $t - $born[$id];
+    printf $attrfmt, @v if @attrname;
+    print "\n";
+}
+
+sub dist {
+    my($x) = $_[3]-$_[0];
+    my($y) = $_[4]-$_[1];
+    my($z) = $_[5]-$_[2];
+    sqrt($x*$x + $y*$y + $z*$z);
+}

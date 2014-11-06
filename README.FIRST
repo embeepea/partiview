@@ -1,0 +1,17 @@
+Program:    partiview ('PC-VirDir')
+Version:    2000-10-04
+
+
+Most documentation should be in the doc tree.
+
+To install, make sure you have installed ftlk and OpenGL (or MESA), then
+
+	cd src
+	configure
+	make
+
+and you should in principle be ready to run the program. A simple example
+how to get going can also be found in the file AAA_SOURCE_ME. This file
+can be sourced which will compile partiview and give some hints what to
+do next.
+

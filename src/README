@@ -1,0 +1,7 @@
+Source code - see Makefile, and documentation (../doc) on how
+to install it. Typically:
+
+	./configure
+				<-- make have to tweak Makefile
+	make
+

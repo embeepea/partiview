@@ -1,0 +1,33 @@
+cmed is a simple graphical colormap editor.
+It reads and writes files in a simple plain-text form
+which is readable by partiview's "cmap" command.
+
+   cmed sample.cmap
+
+You can drag and sweep with various mouse buttons to adjust color.
+E.g. middle-mouse drag adjusts saturation.
+"HSB" button toggles between hue/sat/brightness and
+red/green/blue.  Dragging with shift-left-button adjusts
+alpha (transparency), although partiview currently ignores alpha
+in colormaps.
+
+Dragging with some mouse-button over the color window
+adjusts the corresponding color curve.
+The "Force" slider determines how; with "Force" set to
+maximum, the mouse position directly sets the value.
+With lower "Force" settings, the color curve is
+fractionally displaced toward the mouse position,
+making finer adjustments easier.
+Try sweeping back and forth for a "brushing" effect.
+
+Clicking "Undo" undoes the last drag (i.e. everything
+since the mouse was last depressed over the color window).
+Especially handy if you drag with the wrong button pressed.
+Another "Undo" reverts to the changed state (i.e. it toggles).
+
+To save, type a new name in the text-box and hit "Save".
+To (re)load an existing file, type its name and press "Load".
+
+To resample a colormap to have a different number of
+entries, type in text box something like
+	cments 20

@@ -1,0 +1,183 @@
+# Makefile for partiview - please do not edit if the file is named "Makefile",
+# since configure would overwrite it on the next configure. Edit "Makefile.in"
+# instead, and run configure instead!!!
+# If you must change configure.in, run autoconf, and then configure etc.
+
+# the following variables are under AC control
+# KIRA_INC, KIRA_LIB
+# FLTK_INC, FLTK_LIB
+# PV_FLAGS
+
+#Set the VPATH so it can find the partiview source
+#Added by Will Davis 7-14-08
+VPATH = ../../../../src/demo/partiszg
+
+SHELL = /bin/sh
+
+# slevy hack for test compiling without szg:
+# OBJ_SUFFIX = o
+# SZG_USR_FIRST = ${CXX} -o partiszg 
+# SZG_USR_SECOND = ${LIBS}
+# GL_LIB = -lGL -lGLU -lX11
+#
+# This next part was included by Will Davis 7-14-08
+include $(SZGHOME)/build/make/Makefile.vars
+
+
+# TARGET
+ALL = partiszg$(EXE)
+LIBTARGET = libparti.a
+
+CAVE_INC   = $(SZG_INCLUDE)
+CAVE_LIB   = 
+
+#KIRA_INC = -I$(STARLAB_PATH)/inc
+#KIRA_LIB = -L$(STARLAB_PATH)/lib
+
+#  AC variables KIRA_INC and KIRA_LIB automatically created
+#  if $STARLAB_PATH present; override with --with-kira=
+KIRA_INC = 
+KIRA_LIB = 
+
+THREAD_CFLAGS = 
+THREAD_LIB = 
+
+IEEEIO_INC = 
+IEEEIO_LIB = 
+
+ELUMENS_INC = 
+ELUMENS_LIB = 
+
+PORT_OBJS = 
+
+M_LIB    = -lm
+
+ifeq ($(strip $(SZG_COMPILER)),MINGW)
+# Need this for random()/srandom()
+	M_LIB    += -liberty
+	PORT_OBJS = winjunk$(OBJ_SUFFIX)
+endif
+
+
+MAKEGUI	 = true
+
+
+# FLAGS and BINARIES
+PV_FLAGS    = -DUSE_WARP -DUSE_CONSTE -DUSE_MODEL # -Dunix
+DEFS	    = $(PV_FLAGS)
+OPT	    = -g # -O2 
+INCL	    = $(CAVE_INC) $(KIRA_INC) $(ELUMENS_INC) $(IEEEIO_INC)
+#CC          = gcc
+CFLAGS      = $(COMPILE_FLAGS) $(OPT) $(THREAD_CFLAGS) $(DEFS) $(INCL)
+#CXX	    = g++
+CXXFLAGS    = $(COMPILE_FLAGS) $(OPT) $(DEFS) $(INCL)
+AR	    = ar
+ARFLAGS	    = -cr
+LINK        = $(CXX) $(CXXFLAGS) $(THREAD_CFLAGS)
+LIBS        = $(KIRA_LIB) $(ELUMENS_LIB) $(IEEEIO_LIB) $(CAVE_LIB) $(THREAD_LIB) $(GL_LIB) $(X_LIB) $(M_LIB)
+
+API_CSRCS   = \
+		geometry.c partibrains.c specks.c version.c \
+		mgtexture.c textures.c async.c shmem.c \
+		findfile.c sfont.c warp.c plugins.c version.c
+API_CXXSRCS = \
+		kira_parti.cc parti_model.cc cat_model.cc parti_ieee.cc \
+		tcpsocket.cc
+APP_CXXSRCS = \
+		szgPartiview.cc szgPartiutil.cc \
+		nethack.cc \
+		conste.cc
+
+PLUGIN_OBJS = \
+		plugins$(OBJ_SUFFIX) kira_parti$(OBJ_SUFFIX) warp$(OBJ_SUFFIX) nethack$(OBJ_SUFFIX) parti_ieee$(OBJ_SUFFIX) \
+		elumens$(OBJ_SUFFIX) parti_model$(OBJ_SUFFIX) cat_model$(OBJ_SUFFIX) \
+		conste$(OBJ_SUFFIX)
+
+APP_OBJS    = \
+		szgPartiview$(OBJ_SUFFIX) szgPartiutil$(OBJ_SUFFIX)
+
+API_OBJS    = \
+		partibrains$(OBJ_SUFFIX) geometry$(OBJ_SUFFIX) specks$(OBJ_SUFFIX) version$(OBJ_SUFFIX) \
+		mgtexture$(OBJ_SUFFIX) textures$(OBJ_SUFFIX) async$(OBJ_SUFFIX) \
+		futil$(OBJ_SUFFIX) findfile$(OBJ_SUFFIX) sfont$(OBJ_SUFFIX) \
+		sclock$(OBJ_SUFFIX) notify$(OBJ_SUFFIX) shmem$(OBJ_SUFFIX) \
+		tcpsocket$(OBJ_SUFFIX) \
+		$(PORT_OBJS) \
+		$(PLUGIN_OBJS) \
+		$(MORE_OBJS)
+
+
+
+# This was included by Will Davis 7-14-08
+include $(SZGHOME)/build/make/Makefile.rules
+
+partiszg$(EXE):	$(API_OBJS) $(APP_OBJS) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) $(APP_OBJS) $(API_OBJS) $(SZG_USR_SECOND)
+	$(COPY)
+
+$(LIBTARGET): libdepended $(API_OBJS)
+	$(AR) $(ARFLAGS) $@  $(API_OBJS)
+
+depended: Makefile version.c
+	$(MAKE) depend
+	touch depended  libdepended
+	@echo "Re-running 'make'"
+	$(MAKE)
+
+libdepended: Makefile version.c
+	$(MAKE) libdepend
+	touch $@
+	rm -f depended
+	@echo "Re-running 'make $(LIBTARGET)'"
+	$(MAKE) $(LIBTARGET)
+
+help:
+	@echo  Partiview
+	@echo  
+
+#clean:
+#	rm -f *.o core Makedepend config.cache $(TARGET) $(LIBTARGET)
+#	touch Makedepend
+
+#cleanall: clean
+#	rm -f Makefile config.log config.status config.h
+
+#$(TARGET):  $(APP_OBJS) $(API_OBJS)
+#	$(LINK)  -o $@  $(APP_OBJS) $(API_OBJS) $(LIBS)
+#	$(MAKEGUI)
+
+version.c: VERSION
+	echo "char partiview_version[] = \"`cat VERSION`\";" > $@
+
+version$(OBJ_SUFFIX): version.c
+
+.PHONEY: depend
+
+# dep: depend
+# depend:	_always
+
+depend:
+	rm -f Makedepend
+	$(CC) -M $(CFLAGS) $(APP_CSRCS) $(API_CSRCS) > Makedepend
+	$(CXX) -M $(CXXFLAGS) $(APP_CXXSRCS) $(API_CXXSRCS) >> Makedepend
+
+libdepend:
+	rm -f Makedepend
+	$(CC) -M $(CFLAGS) $(API_CSRCS) > Makedepend
+	$(CXX) -M $(CXXFLAGS) $(API_CXXSRCS) >> Makedepend
+
+_always:
+
+#.SUFFIXES: .C .cc .cxx .cpp
+
+.c$(OBJ_SUFFIX):
+	$(CXX) -c $(CXXFLAGS) $<
+
+#.cc$(OBJ_SUFFIX):
+#	$(CXX) -c $< $(CXXFLAGS) 
+#.cxx$(OBJ_SUFFIX):
+#	$(CXX) -c $< $(CXXFLAGS)
+#.cpp$(OBJ_SUFFIX):
+#	$(CXX) -c $< $(CXXFLAGS) 
+
+include $(VPATH)/Makedepend.partiszg

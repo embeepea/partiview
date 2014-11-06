@@ -1,0 +1,46 @@
+Here are some ideas on expanding partiview:    (KIRA group)
+
+>> what shoudl we call us: 
+   manybody group      
+   starlab group
+   kira group
+
+1) extra windows
+		  
+Probably the most prominent thing our group has been
+talking about (and partially implemented) is some sibling windows
+(e.g. the HR diagram) to aid in visualization. Some of these ideas are
+in a way very similar to Dynamic Queries 
+(e.g.http://www.astro.umd.edu/~teuben/aips++/ddq.ps) and xgobi
+(http://www.research.att.com/areas/stat/xgobi/).
+
+2) command line interface
+
+The command interface to partiview is something that grew 
+out of needs. For beginners it is often a bit confusing to
+see two types of commands: data commands and control commands.
+But we could change this command interface to one of the currently
+popular scripting languages, such as Ruby or Python. Ideally to shield
+ourselves from progress (e.g. when a new language comes around) we 
+could use SWIG (swig.org) .
+
+>> i'd like to put a hypothetical code snippet here.
+
+3) remote operations
+
+Sort of like a client server, it would be nice if partiview
+could be instructed to sit in a mode where it also listens
+asyncronesly to events, and external agents can then do
+things. Perhaps some of this 'need' will go away if we
+have a python-like scripting language, since they come with
+this. The example in the manual how to make animations is
+one place where i encountered this. Another example could
+be to use partiview to view in real-time the progress of
+a simulation, and allow the user to interact with the data
+while it's being integrated.
+
+
+
+
+
+- $Id: ideas1.txt,v 1.3 2003/10/03 02:54:32 pteuben Exp $

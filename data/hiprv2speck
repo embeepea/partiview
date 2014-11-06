@@ -1,0 +1,235 @@
+#! /usr/bin/perl
+
+# Hipparcos catalog hip_main.dat:
+#  ftp://adc.gsfc.nasa.gov/pub/adc/archives/catalogs/1/1239/hip_main.dat.gz
+# 42- 46  F5.2  mag     Vmag      ? Magnitude in Johnson V                  (H5)
+# 52- 63  F12.8 deg     RAdeg    *? alpha, degrees (ICRS, Eq=J2000)         (H8)
+# 65- 76  F12.8 deg     DEdeg    *? delta, degrees (ICRS, Eq=J2000)         (H9)
+# 80- 86  F7.2  mas     Plx       ? Trigonometric parallax                 (H11)
+# 88- 95  F8.2 mas/yr   pmRA      ? Proper motion mu_alpha.cos(delta), ICRS(H12)
+# 97-104  F8.2 mas/yr   pmDE      ? Proper motion mu_delta, ICRS           (H13)
+#246-251  F6.3  mag     B-V       ? Johnson B-V colour                     (H37)
+
+# General Catalog of Radial Velocities 
+#  ftp://adc.gsfc.nasa.gov/pub/adc/archives/catalogs/3/3213/catalog.dat.gz
+# 65- 70  I6            HIC       Hipparcos catalog number
+#113-119  F7.2  km/s    RV        Mean Radial Velocity
+
+$d2r = 3.1415926 / 180;
+$logmag = log(100) / 5;
+
+print "datavar 0 colorb_v\n";
+print "datavar 1 lum\n";
+print "datavar 2 Mv\n";
+print "datavar 3 mv\n";
+print "datavar 4 hipno\n";
+print "datavar 5 vx\n";
+print "datavar 6 vy\n";
+print "datavar 7 vz\n";
+print "datavar 8 speed\n";
+print "datavar 9 txno\n";
+print "# Space velocities in pc/Myr\n";
+
+sub Usage {
+    print STDERR "Usage: $0 [-a] [-m maglim] [-M absmaglim] [-y yale.star] [-r RVelcat]  [hip_main.dat] > stars.speck
+Reads Hipparcos ASCII catalog (hip_main.dat, ADC catalog I/239)
+and General Catalog of Mean Radial Velocities (ADC cat III/3213).
+Writes partiview \".speck\" file.
+";
+    exit(1);
+}
+  
+while($ARGV[0] =~ /^-[amMyr]/) {
+  $_ = shift;
+  $anyway = 1, next if /^-a/;
+  $faintmv = shift, next if /^-m/;
+  $faintMv = shift, next if /^-M/;
+  $yalecat = shift, next if /^-y/;
+  $rvelcat = shift, next if /^-r/;
+  &Usage;
+}
+
+%greek = split(' ', <<EOF);
+a alf
+b bet
+c chi
+d del
+e eps
+f phi
+g gam
+h eta
+i iot
+j phi
+k kap
+l lam
+m mu
+n nu
+o omi
+p pi
+q the
+r rho
+s sig
+t tau
+u ups
+w omg
+x xi
+y psi
+z zet
+EOF
+
+if($greekcode) {
+  ($lettera, $letterz) = unpack("CC", "az");
+  # Uses new souped-up sfont.c with greek simplex in +128
+  for($gk = $lettera; $gk <= $letterz; $gk++) {
+    $greek{pack("C",$gk)} = pack("C", $gk+128);
+  }
+}
+
+
+%constmap = split(' ', <<EOF);
+CMA CMa
+CMI CMi
+CRA CrA
+CRB CrB
+CVN CVn
+LMI LMi
+PSA PsA
+TRA TrA
+UMA UMa
+UMI UMi
+EOF
+
+if($yalecat) {
+  open(YALE, $yalecat);	# In yale.star format, as distributed with starchart
+  while(<YALE>) {
+    chop;
+    $yalekey = substr($_, 0, 4) . substr($_, 6, 4);
+    $constel = substr($_, 20, 3);
+    if(defined($constmap{$constel})) {
+	$constel = $constmap{$constel};
+    } elsif(length($constel) == 3) {
+	substr($constel,1,2) =~ tr/A-Z/a-z/;
+    }
+    $bayer = substr($_, 18, 2) . " " . $constel;
+    $bayer =~ tr/ / /s;
+    $bayer =~ s/^ //;
+    $bayer =~ s/^([a-z])([\d ])/$greek{$1} . $2/e;
+    $name = substr($_, 23);
+    next if $bayer eq "" && $name !~ /\S/;
+    $yale{ $yalekey } = ($bayer eq " ") ? $name : $bayer . " " . $name;
+  }
+}
+
+if($rvelcat) {
+  open(RVEL, $rvelcat);
+  while(<RVEL>) {
+    $hipno = substr($_, 65-1, 6) + 0;
+    $rv = substr($_, 113-1, 7);
+    $rv =~ tr/ //d;
+    next unless $hipno > 0 && $rv ne "";
+    $rvel{$hipno} = $rv;
+  }
+  close(RVEL);
+}
+    
+
+print "0 0 0  0.5  .008  5.2  -26.5  1  0 0 0  0 1 # 0000+0000 Sun\n";
+
+while(<>) {
+  $hipno = substr($_, 9-1, 6) + 0;
+  ($raplace = substr($_, 18-1, 8)) =~ tr/ //d;
+  ($decplace = substr($_, 30-1, 7)) =~ tr/ //d;
+  $mv = substr($_, 42-1, 5);
+  $radeg = substr($_, 52-1, 12);
+  $decdeg = substr($_, 65-1, 12);
+  $ra = $radeg * $d2r;
+  $dec = $decdeg * $d2r;
+  
+  
+# 88- 95  F8.2 mas/yr   pmRA      ? Proper motion mu_alpha.cos(delta), ICRS(H12)
+# 97-104  F8.2 mas/yr   pmDE      ? Proper motion mu_delta, ICRS           (H13)
+  $parmas = substr($_, 80-1, 7);
+  $pmra = substr($_, 88-1, 8);
+  $pmdec = substr($_, 97-1,8);
+  $b_v = substr($_, 246-1, 6);
+
+  next if $ra == 0 && $dec == 0;
+
+  next if defined($faintmv) && $mv > $faintmv;
+
+  $parmas = 1 if $parmas < 1;	# Clamp to 1 kpc
+  $distpc = 1000 / $parmas;
+
+  $lum = exp( -$mv * $logmag ) * $distpc*$distpc / (10*10);
+
+  $Mv = -log($lum) / $logmag;
+
+  next if defined($faintMv) && $Mv > $faintMv;
+
+  $more = "";
+  if(defined(%yale) && $mv < 6.5) {
+    if($decdeg < 0) {
+	$decsign = "-";
+	$decmin = int(-$decdeg * 60 + .5);
+    } else {
+	$decsign = "+";
+	$decmin = int($decdeg * 60 + .5);
+    }
+    $decplace = sprintf("%s%02d%02d", $decsign, int($decmin/60), $decmin%60);
+    $yalekey = substr($raplace,0,4) . substr($decplace,0,4);
+    if(defined($yale{$yalekey})) {
+	$more = " " . $yale{$yalekey};
+	$seen{$yalekey}++;
+	print STDERR $yalekey, " ", $more, "\n";
+	$decplace = substr($decplace, 0, 5);
+    }
+  }
+
+  @R = ( cos($ra) * cos($dec),
+         sin($ra) * cos($dec),
+         sin($dec) );
+
+  if(defined($rvel{$hipno})) {
+    # Compute space velocity in pc/Myr
+    # Radial portion in 
+    $rv = $rvel{$hipno} * 1.0226903;	# 1 km/sec = 1.0226903 pc/Myr.  Neat huh?
+    $tvs = $distpc * .004848;		# 1 mas/yr = .004848 pc/Myr / pc
+    @vd = ( -$R[2]*$R[0], -$R[2]*$R[1], 1-$R[2]*$R[2] );
+    @va = ( -$R[1], $R[0], 0 );
+    $svd = $pmdec * $tvs / &mag( @vd );
+    $sva = $pmra * $tvs / &mag( @va );
+    @V = ( $rv*$R[0] + $svd*$vd[0] + $sva*$va[0],
+           $rv*$R[1] + $svd*$vd[1] + $sva*$va[1],
+           $rv*$R[2] + $svd*$vd[2] + $sva*$va[2] );
+  } else {
+    next unless $anyway;
+    @V = (0,0,0);
+  }
+
+  printf "%.2f %.2f %.2f  %.2f %.3g %.1f %.1f %d %.2f %.2f %.2f  %.2f %d # %.4s%s%s\n",
+	&svmul( $distpc, @R ),
+	$b_v,
+	$lum,
+	-log($lum) / $logmag,
+	$mv,
+	$hipno,
+	@V,
+	&mag(@V),
+	1,
+	$raplace, $decplace, $more;
+}
+
+foreach $_ (keys(%yale)) {
+  if($seen{$_} == 0) {
+    printf "# Missed %s %s\n", $_, $yale{$_};
+  } elsif($seen{$_} > 1) {
+    printf "# Saw %s %s (%d times)\n", $_, $yale{$_}, $seen{$_};
+  }
+}
+
+sub mag {
+  sqrt($_[0]*$_[0] + $_[1]*$_[1] + $_[2]*$_[2]);
+}
+sub svmul {
+  ( $_[0]*$_[1], $_[0]*$_[2], $_[0]*$_[3] );
+}

@@ -1,0 +1,110 @@
+#! /usr/bin/perl
+
+($me = $0) =~ s'.*/'';
+
+$res = "";
+$fovy = "";
+
+sub scanopts {
+  while(@ARGV) {
+    if($ARGV[0] =~ /^-n/) {
+	$nowait = shift(@ARGV);
+
+    } elsif($ARGV[0] =~ /^-res/) {
+	shift(@ARGV);
+	$res = shift(@ARGV) . " " . shift(@ARGV);
+
+    } elsif($ARGV[0] =~ /^-fov/) {
+	shift(@ARGV);
+	$fovy = shift(@ARGV);
+
+    } elsif($ARGV[0] =~ /^-asp/) {
+	shift(@ARGV), shift(@ARGV);
+
+    } elsif($ARGV[0] =~ /^-subcam/) {
+	shift(@ARGV);
+	@subcams = grep($_ ne "", split(/[\s,]/, shift(@ARGV)));
+
+    } else {
+	return;
+    }
+  }
+}
+
+&scanopts();
+
+unless(@ARGV >= 3 && ($ARGV[1].$ARGV[2]) =~ /^\d+$/ && $ARGV[2] >= $ARGV[1]) {
+    print STDERR "Usage: $me   [-res XSIZE YSIZE] [-fovy FOVY] [-subcam cam1,cam2,...]  [ stemname  starttime endtime [timestep]
+Command partiview to take successive snapshots, varying datatime (\"step\")
+and moving along any currently-loaded (rdata) path (\"frame\").
+(If no path is loaded, uses current camera position.  Try a slow spin!)
+Output images are named stemname.NNNN.png unless stemname includes % sign,
+in which case it's taken as a printf format string (including suffix).
+Use -subcam to render for one or several subcameras (which must be
+defined to partiview too, with e.g.:   'read \$RDATA/params/subcam-params'
+
+Use as e.g., in partiview command box,
+     async $me  wow  0.0 10.0 0.2
+or   async $me  -subcam hp0,hp1,hp2,hp3,hp4  wow.@.%04d.tif  0 3 0.02
+";
+    exit(1);
+}
+
+$stem = shift(@ARGV);
+$min = shift(@ARGV);
+$max = shift(@ARGV);
+
+$step = ($ARGV[0] =~ /^\d+$/) ? shift(@ARGV) : 1;
+
+$min = 1 if $min <= 0;
+
+&scanopts();
+
+$stem = "$stem.%04d.png" unless $stem =~ /%/;
+$stem =~ s/\%/\@.\%/ if @subcams && $stem !~ /\@/;
+
+$| = 1;
+
+print "{\nwinsize $res\n}\n" if $res;
+
+$set_fovy = "fovy $fovy" if $fovy;
+
+@subcams = ("") unless(@subcams);
+
+while(@subcams) {
+    $subcam = shift(@subcams);
+
+    if($subcam ne "") {
+	$set_subcam = "subcam $subcam\n";
+    }
+    ($scstem = $stem) =~ s/\@/$subcam/g;
+
+    $frame = 0;
+    for($time = $min; $time <= $max; $time += $step, $frame++) {
+  
+	print STDERR "=> snapshot -n $frame  $scstem => '", sprintf($scstem,$frame), "'\n";
+
+	print "eval {\n";
+	print "eval $set_subcam\n" if $set_subcam;
+	print "eval frame $frame\n";	# in case there's an anim path loaded too
+	print "eval step $time\n";
+	print "eval $set_fovy\n" if $set_fovy;
+	print "eval jump - - - - - -\n";  # force update
+	$scfile = sprintf($scstem, $frame);
+	print "eval snapshot $scfile\n";
+	print "eval }\n";
+
+	$set_subcam = "";
+	unless($nowait) {
+	    $waitcount = 0;
+	    while(! -f $scfile) {
+		if($waitcount++ == 50) {
+		    printf STDERR "Got tired of waiting for $scstem to appear -- giving up!\n", $frame;
+		    exit(1);
+		}
+		select(undef, undef, undef, .333);	# Wait 1/3rd second.
+	    }
+	    printf STDERR "=> Found $scstem\n", $frame;
+	}
+    }
+}

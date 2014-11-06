@@ -1,0 +1,19 @@
+2000-09-16	gview (partiview) code received; 
+		for Linux needs Mesa and fltk, small mod to Makefile
+		to find fltk include files;
+		would be good to write up some installation instructions
+
+
+		wrote a configure.in script to aid installing
+
+		wrote some path (*.wf) files to simulate space motion
+	
+
+2000-10-10	made up a VERSION=0.1 release, with code and data and a 
+		manual (sgml/html/txt) for export within the group
+
+2000-11-26	conversion to CVS
+
+2000-12-09	akash (our first CVS repository crashed) 
+2000-12-12	manually rebuild CVS on grus, readying it for 0.4
+2001-03-19	released 0.5 - many minor changed

@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 7.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "partiviewGlut", "partiviewGlut.vcproj", "{C975A94B-033A-4A5B-9A65-85D230BD7277}"
+EndProject
+Global
+	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
+		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}
+	EndGlobalSection
+	GlobalSection(SolutionConfiguration) = preSolution
+		ConfigName.0 = Debug
+		ConfigName.1 = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{C975A94B-033A-4A5B-9A65-85D230BD7277}.Debug.ActiveCfg = Debug|Win32
+		{C975A94B-033A-4A5B-9A65-85D230BD7277}.Debug.Build.0 = Debug|Win32
+		{C975A94B-033A-4A5B-9A65-85D230BD7277}.Release.ActiveCfg = Release|Win32
+		{C975A94B-033A-4A5B-9A65-85D230BD7277}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

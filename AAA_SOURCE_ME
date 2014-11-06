@@ -1,0 +1,44 @@
+
+# Source this file to install and build partiview from scratch.
+# 
+#  It assumes you have the required ancillary libraries installed, 
+#  in this case fltk and Mesa, and ideally $STARLAB_PATH is also in your
+#  environment.
+
+rm -f install.log >& /dev/null
+touch install.log
+
+set stat = 0
+
+echo \(Sending output to install.log\)
+if ($?STARLAB_PATH) then
+  set msg="(including Starlab enhancements)"
+else
+  set msg="(without Starlab enhancements)"
+endif
+
+    echo "Running configure in src $msg"
+    sleep 2
+    cd src
+    configure >>& ../install.log
+    if ($status) then
+	@ stat++
+    endif
+    make >>& ../install.log
+    if ($status) then
+	@ stat++
+    endif
+    echo '++++++++++++++++++++++++++++++++++++++++' >>& ../install.log
+    cd ..
+
+echo "Done..."
+echo ""
+echo "Note: You need to copy the partiview executable to any directory in your"
+echo "      path, or supply the following alias to your shell:"
+echo "             alias partiview `pwd`/src/partiview"
+echo "To run a quick demo:"
+echo "             cd data; partiview hipbright"
+echo "Or if you have STARLAB loaded:"
+echo "             cd data; make -f primbin16.mk; partiview primbin16.cf"
+
+

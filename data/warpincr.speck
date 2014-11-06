@@ -1,0 +1,34 @@
+#! /usr/bin/env partiview
+
+# Demonstrates discrete timesteps ("datatime") combined with continuous extrapolation from the position
+# given at each time (via "warp -extrap" and the vx/vy/vz fields in each particle.
+# We constructed the vx vectors such that extrapolating them for unit time (1/the "p" value)
+# is enough to carry them from their position at that time, to their position at the next timestep.
+# Since the "warp ... -p" value "p" gives the amount of time per unit motion (1/speed),
+# this means we choose V (= vector of three successive attributes here called vx,vy,vz) such that
+#
+#    Position_i + V / p = Position_i+1
+#
+datavar 0 vx
+datavar 1 vy
+datavar 2 vz
+datavar 3 who
+
+warp -extrap vx,1 -z 0 -p 1
+eval color who 0 4
+eval lum const 1000
+
+datatime 0
+0 0 0   1 0 0      1
+0 0 0   0 1 0      2
+0 0 0   0 0 1      3
+
+datatime 1
+1 0 0   0 0.5 0    1
+0 1 0   0 0 0.5    2
+0 0 1   0.5 0 0    3
+
+datatime 2
+1 0.5 0  0 0.5 1   1
+0 1 0.5  1 0 0.5   2
+0.5 0 1  0.5 1 0   3

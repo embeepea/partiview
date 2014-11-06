@@ -1,0 +1,147 @@
+# Makefile for parti
+SHELL = /bin/sh
+
+# TARGET
+TARGET   = parti64
+
+# PATHWAYS
+CAVE_DIR	= /usr/local/CAVE
+## CAT_DIR	= /afs/ncsa/projects/virdir/vd
+CAT_DIR		= ../../vd
+IEEEIO		= /afs/ncsa/packages/ieeeio/IRIX64_6.5
+
+## KIRA_DEF = -DUSE_KIRA
+## KIRA_INC = -I/vr/data/virdir/src/starlab/inc
+## KIRA_LIB = -L/vr/data/virdir/src/starlab/lib -ltdyn -ldyn -lnode -lsstar -lstd
+## KIRA_OBJS = kira_parti.o
+
+
+# Include information
+CAVE_INC	= -I$(CAVE_DIR)/include/
+CAT_INC		= -I$(CAT_DIR)
+IEEEIO_INC	= -I${IEEEIO}/include
+
+# Library information
+CAVE_LIB	= -L$(CAVE_DIR)/lib64/
+CAT_LIB_DEP	= $(CAT_DIR)/64/libcat_ogl.a
+CAT_LIB		= -L$(CAT_DIR)/64 -lcat_ogl -limage
+IEEEIO_LIB	= -L${IEEEIO}/lib -lieeeio
+
+# FLAGS and BINARIES
+DEFS	    = -DWORDS_BIGENDIAN -DUSE_IEEEIO -DUSE_WARP -DUSE_MODEL -DNO_WHERE -DCAVEMENU ${KIRA_DEF} -DTHIEBAUX_VIRDIR # -DSC99DEMO 
+CC          = cc
+CFLAGS     = -c -fullwarn -woff 1174,1506,3201 -DOPENGL -DCAVE  \
+		\
+               ${OPT} ${OTYPE} ${DEFS} ${CAVE_INC} ${CAT_INC} ${IEEEIO_INC}
+CXX	    = CC
+CXXFLAGS    = ${CFLAGS} -woff 3201
+OTYPE	    = -64 -mips4
+OPT         = -g3 -O2
+LDFLAGS     = -Wl,-woff,85 ${OTYPE}
+LIBS        = ${CAVE_LIB} ${CAT_LIB} ${IEEEIO_LIB} -lcave_ogl -lGL -lGLcore -lGLU -lX11 -lXi -lm -lmalloc
+
+APP_CSRCS   = partibrains.c shmem.c cavescrn.c cavemenu.c geometry.c vd_util.c \
+		mgtexture.c textures.c futil.c findfile.c sfont.c \
+		sclock.c notify.c
+APP_CXXSRCS = partimain.cc parti_ieee.cc
+
+TRACKERPATCH  = vr_input.magellan.o vr_input.spacetec.o cave.net.o
+
+TRACKERPATCH  = vr_input.magellan.o vr_input.spacetec.o \
+		cave.net.o cave.opengl.o cave.simtrack.o
+
+APP_OBJS1    = partiutil.o partibrains.o \
+		shmem.o cavescrn.o cavemenu.o partimenu.o \
+		geometry.o vd_util.o \
+		mgtexture.o textures.o futil.o findfile.o sfont.o \
+		async.o sclock.o notify.o \
+		plugins.o warp.o parti_ieee.o ${KIRA_OBJS} parti_model.o \
+		version.o \
+		${TRACKERPATCH}
+
+APP_OBJS     = partimain.o ${APP_OBJS1}
+TIMED_APP_OBJS = partimain.timed.o ${APP_OBJS0}
+
+$(TARGET):  $(APP_OBJS) $(CAT_LIB_DEP)
+	$(CXX) -o $@ $(OPT) ${LDFLAGS} $(APP_OBJS) $(LIBS) -no_transitive_link
+
+$(TARGET).timed:  $(TIMED_APP_OBJS) $(CAT_LIB_DEP)
+	$(CXX) -o $@ $(OPT) ${LDFLAGS} $(APP_OBJS) $(LIBS) -no_transitive_link
+
+TIMEBOMB = `perl -e '$$days = "${DAYS}"; $$expires = "${EXPIRES}"; print "-DEXPIRES=", $$expires || time + 86400*(1 + $$days);'`
+
+partimain.timed.o: partimain.cc  _always
+	${CXX} -c -o $@ ${TIMEBOMB} ${CXXFLAGS}  partimain.cc
+
+dmlog:	dmlog.cc
+	${CXX} -o $@ $@.cc ${OPT} -n32 ${IEEEIO_INC}  ${IEEEIOPATCH} ${IEEEIO_LIB} -lm
+gaslog:	gaslog.cc
+	${CXX} -o $@ $@.cc ${OPT} -n32 ${IEEEIO_INC}  ${IEEEIOPATCH} ${IEEEIO_LIB} -lm
+
+CAVEOPTS = -DOPENGL -UCAPITALISTPIGS -UZUP_COORDS -UPFCAVE -ULINUX -D_OLD_TERMIOS -DNO_WAND_CLAMP
+
+cave.spaceorb.o: cave.spaceorb.c
+	${CC} -c ${OTYPE} ${OPT} ${CAVEOPTS} -I/usr/local/CAVE/include cave.spaceorb.c
+
+cave.spacepad.o: cave.spacepad.c
+	${CC} -c -D_OLD_TERMIOS ${OTYPE} ${OPT} ${CAVEOPTS} -I/vr/apps/cave/src/cave2.6.0/src.v2.6 cave.spacepad.c
+
+vr_input.magellan.o: vr_input.magellan.c
+	${CC} -c -D_OLD_TERMIOS ${OTYPE} ${OPT} ${CAVEOPTS} -I/vr/apps/cave/src/cave2.6.0/src.v2.6 vr_input.magellan.c
+vr_input.spacetec.o: vr_input.spacetec.c
+	${CC} -c ${OTYPE} ${OPT} -O0 -g ${CAVEOPTS} -I/vr/apps/cave/src/cave2.6.0/src.v2.6 vr_input.spacetec.c
+cave.opengl.o: cave.opengl.c
+	${CC} -c ${OTYPE} ${OPT} ${CAVEOPTS} -I/vr/apps/cave/src/cave2.6.0/src.v2.6 cave.opengl.c
+cave.simtrack.o: cave.simtrack.c
+	${CC} -c ${OTYPE} ${OPT} ${CAVEOPTS} -I/vr/apps/cave/src/cave2.6.0/src.v2.6 cave.simtrack.c
+cave.net.o: cave.net.c
+	${CC} -c -D_OLD_TERMIOS ${OTYPE} ${OPT} ${CAVEOPTS} -I/vr/apps/cave/src/cave2.6.0/src.v2.6 cave.net.c
+
+SRDIR = /vr/data/virdir/stars/StarRender
+WARPCFLAGS = -DSTANDALONE -UCAVE -UCAVEMENU -I${SRDIR}
+warpsdb: warp.o geometry.o
+	${CC} -c -o warpsdb.o warp.c  ${CFLAGS} ${WARPCFLAGS}
+	${CC} -o warpsdb  warpsdb.o geometry.o -lm  ${CFLAGS}
+
+PACKAGE = AMR/parti.tar.Z
+package:
+	(echo "-C"; echo ..; sed -e 's:^:parti/:' FILES) | grep -v '#' | \
+		gnutar cvhZTf - ${PACKAGE}
+
+dep: depend
+depend:	_always
+	rm -f Makedepend
+	${CC} -M ${CFLAGS} ${APP_CSRCS} > Makedepend
+	${CXX} -M ${CXXFLAGS} ${APP_CXXSRCS} >> Makedepend
+
+_always:
+
+HDFIO = /afs/ncsa/packages/ieeeio/IRIXn32_6.2
+rawhdf:  rawhdf.o
+	${CXX} ${OTYPE} -o $@ $@.o -L${HDFIO}/lib -lhdfio  -lieeeio  -lmfhdf  -ldf -lz
+
+rawhdf.o: rawhdf.c
+	${CC} ${OTYPE} -c rawhdf.c ${CFLAGS} -DANSI -DSGI
+
+asc2ieee: asc2ieee.o
+	${CXX} ${CXXFLAGS} -o $@ $@.o  -L${IEEEIO}/lib -lieeeio -lm
+
+rawsample: rawsample.o
+	${CXX} ${CXXFLAGS} -o $@ $@.o  -L${IEEEIO}/lib -lieeeio -lm
+
+.SUFFIXES: .cc
+
+.cc.o:
+	${CXX} -c ${CXXFLAGS} $<
+
+partconv.tar.gz: _always
+	gnutar cvfz $@ README.conv hier2parti hier2boxes \
+		PartConv/Makefile \
+		PartConv/EnzoToParticles.cc \
+		PartConv/EnzoGridInfo.cc PartConv/EnzoGridInfo.hh \
+		PartConv/EnzoGridHierarchy.cc PartConv/EnzoGridHierarchy.hh \
+		PartConv/EnzoToParticles
+
+
+
+sinclude Makedepend

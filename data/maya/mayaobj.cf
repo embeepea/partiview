@@ -1,0 +1,7 @@
+#! /usr/bin/env partiview
+
+# Avatar designed by Lance Chong -- Stuart's face on an Astroscan
+mayaobj -scene stuart.scene  stuart.obj
+
+# Make it opaque
+eval alpha 1

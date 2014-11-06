@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
+ <TITLE> Partiview (PC-VirDir): Bugs, Features and Limitations</TITLE>
+ <LINK HREF="partiview-9.html" REL=next>
+ <LINK HREF="partiview-7.html" REL=previous>
+ <LINK HREF="partiview.html#toc8" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="partiview-9.html">Next</A>
+<A HREF="partiview-7.html">Previous</A>
+<A HREF="partiview.html#toc8">Contents</A>
+<HR>
+<H2><A NAME="s8">8.</A> <A HREF="partiview.html#toc8">Bugs, Features and Limitations</A></H2>
+
+
+<P>Here is a list of known peculiarities, some of them bugs, others just
+features and others limitations, and there is always that class of
+things I simply have not understood how it works.</P>
+
+<H2><A NAME="ss8.1">8.1</A> <A HREF="partiview.html#toc8.1">Limitations w.r.t. VirDir:</A>
+</H2>
+
+
+<P>
+<OL>
+<LI>cannot set an auto-motion, as we can in the dome, although one could
+of course load a path and move through the dataset :-)
+I was able to make a path (*.wf) file and load that though.
+Now mostly solved via the <CODE>Inertia</CODE> toggle under the
+<CODE>More</CODE> button from the Top Row Window.
+</LI>
+</OL>
+</P>
+
+<H2><A NAME="ss8.2">8.2</A> <A HREF="partiview.html#toc8.2">Some notes for newcomers to VirDir</A>
+</H2>
+
+<P>Although starting <CODE>virdir</CODE> is very similar to <CODE>partiview</CODE>,
+<HR>
+<PRE>
+   % parti gal2.cf
+or, 
+   % virir gal2.cf
+</PRE>
+<HR>
+
+the seasoned <CODE>partiview</CODE> user will need  to relearn a few modes to
+get used to <CODE>virdir</CODE>. In particular, at AMNH starting virdir will 
+probably cause your console screen  (which is normally panel#1 on the
+dome) to go dark with no visible command prompt. To regain control,
+type the commands (blindly)
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+
+   raise
+   fly
+   idle
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+
+which will put <CODE>virdir</CODE> in fly and animation mode.</P>
+<P>Here are some important modes, make sure you keep the mouse in the console window.
+It is easy to get it lost in any of the other 6 displays which are only visible
+on the dome.
+<OL>
+<LI>Pushing the Left and Right mouse buttons simultaneously will send the display
+to the HOME position.
+</LI>
+<LI>Left mouse button will toggle the Pause mode in animate/fly mode.
+</LI>
+<LI>Holding the Ctrl-button down while moving the mouse will bring your point
+of interest into view
+</LI>
+<LI>Holding the Alt-button down while moving the mouse will rotate around your
+point of interest.
+</LI>
+<LI>The 'p' key
+</LI>
+<LI>The middle mouse button toggles Head display vs. Center display.
+</LI>
+<LI>Holding the Shift-button down while moving the mouse will change the 
+available screen-space (works like a zoom).
+
+</LI>
+</OL>
+</P>
+
+<HR>
+<A HREF="partiview-9.html">Next</A>
+<A HREF="partiview-7.html">Previous</A>
+<A HREF="partiview.html#toc8">Contents</A>
+</BODY>
+</HTML>

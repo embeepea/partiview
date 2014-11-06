@@ -1,0 +1,23 @@
+#! /usr/bin/perl
+
+if(@ARGV == 0 && -t STDIN) {
+  print STDERR "Usage: $0  < kira-story-with-short-keywords   > story-with-long-keywords
+Reads a traditional kira story; replaces selected keywords (Particle,
+(Dynamics, (Log, (Hydro, (Star  with new Nov2000 ones (P, (D, ... (S.
+Writes result to stdout.
+";
+  exit(1);
+}
+
+%map = split(' ', <<EOF);
+P Particle
+D Dynamics
+L Log
+H Hydro
+S Star
+EOF
+
+while(<>) {
+  s/^([()])([PDLHS])(\s)/$1$map{$2}$3/;
+  print;
+}

@@ -1,0 +1,2476 @@
+  Partiview (PC-VirDir)
+  Peter Teuben, Stuart Levy
+  25 June 2002
+
+  partiview is a program that enables you to visualize and animate par-
+  ticle data. partiview runs on relatively simple desktops and laptops,
+  but is mostly compatible with its big brother VirDir.  This document
+  helps you installing and running the development version of partiview.
+  ______________________________________________________________________
+
+  Table of Contents
+
+
+  1. Installation
+     1.1 MESA/OpenGL
+     1.2 FLTK
+     1.3 partiview
+     1.4 CVS
+     1.5 Compiling under Windows
+
+  2. Directory structure
+  3. Running the program
+     3.1 Example 1: Hipparcos Bright Star Catalogue 3-D viewing
+     3.2 Top Row
+     3.3 Group row (optional)
+     3.4 Time Animation rows (Optional)
+     3.5 Camera (path) Animation row
+     3.6 Logfile window
+     3.7 Command window
+     3.8 Viewing window
+     3.9 Example 2: a (starlab) animation
+     3.10 Example 3: stereo viewing
+     3.11 Example 4: subsetting
+
+  4. Commands
+     4.1 Control Commands
+     4.2 I/O Control Commands
+     4.3 Object Group Control Commands
+     4.4 View Control commands
+     4.5 Particle Display Control Commands
+     4.6 Particle subsetting & statistics
+     4.7 Boxes
+     4.8 Data commands
+     4.9 Kira/Starlab
+        4.9.1 Kira particle attributes
+        4.9.2 Hertzsprung-Russell diagram
+        4.9.3 kira control commands
+     4.10 Textures
+     4.11 Coordinates and Coordinate Transformations
+     4.12 Colormap Files
+
+  5. Viewing Window Keyboard Shortcuts
+  6. Partiview and NEMO
+  7. Tips
+  8. Bugs, Features and Limitations
+     8.1 Limitations w.r.t. VirDir:
+     8.2 Some notes for newcomers to VirDir
+
+  9. Glossary
+
+
+  ______________________________________________________________________
+
+
+
+  [1m1.  Installation[0m
+
+
+  This assumes you have the July 2001 release (version 0.6 or later) of
+  [1mpartiview[22m, not the earlier "[1mgview[22m" release that was described in
+  earlier versions of this document. We keep copies of some Linux
+  support files (Mesa, FLTK) on our current
+  http://www.astro.umd.edu/nemo/amnh website. Although more current
+  versions of support libraries may be available, they may not have been
+  tested out.  This release has been tried on Linux (red hat 6.2, 7.1,
+  7.2), Irix and Windows.
+
+  partiview needs two libraries to compile: OpenGL (or MESA) for the
+  drawing operations, and FLTK for the graphical user interface.  These
+  libraries are known to work on MS-Windows as well as many Unix
+  flavors.
+
+
+
+  [1m1.1.  MESA/OpenGL[0m
+
+
+  First make sure Mesa is installed, for redhat6.2 there are rpm files
+  available.  For redhat7.1+ they are now included in the basic
+  distribution.  Check if you have something like the following (version
+  numbers may be different):
+
+
+
+       ______________________________________________________________________
+              % rpm -qa | grep Mesa
+              Mesa-3.2-2
+              Mesa-devel-3.2-2
+
+       else:
+
+              % rpm -i Mesa-3.2-2.i686.rpm Mesa-devel-3.2-2.i686.rpm
+       ______________________________________________________________________
+
+
+
+  You should have both installed. Some packages will use libMesaGL,
+  others libGL. Our configure script (see below) should take care of the
+  two possible options.
+
+  Homepage: http://mesa3d.sourceforge.net/
+
+
+  Redhat packages: (part of powertools I believe)
+
+
+  Mesa3D is under continuous development. As of this writing the stable
+  release is 4.0.1, but it has not been tested with the current
+  partiview release.  Redhat 7.1 comes with Mesa-3.4 and also works with
+  partiview.  You can also use a CVS release of Mesa.
+
+
+  [1m1.2.  FLTK[0m
+
+  Also make sure FLTK is installed.  If you got our version, do this (as
+  root)
+
+
+
+  ______________________________________________________________________
+         % locate libfltk.a
+         % locate Fl_Slider.h
+
+  if they fail, then
+
+         % cd <where-ever>/fltk-1.0.9
+         % make install
+
+  ______________________________________________________________________
+
+
+
+  (you only need it if you want to recompile the program at some point,
+  not if you just want to run it)
+
+  Homepage: http://www.fltk.org/
+
+  Redhat packages: http://www.cs.cornell.edu/nogin/RPM/fltk-devel.html
+
+  Find rpms: http://rpmfind.net
+
+
+  FLTK is under continuous development.   Versions from 1.0.9 through
+  1.1.0rc3 have been successfully tested with partiview.  The upcoming
+  2.0 version of FLTK is unlikely to work with partiview.
+
+
+
+  [1m1.3.  partiview[0m
+
+
+  You can decide to use a branded version, usually available as a tar or
+  zip file, or use the CVS (see below).  Extract the tarball, and
+  install the program from within the src directory:
+
+
+
+       ______________________________________________________________________
+              % tar zxf partiview-0.6.tar.gz
+
+              % cd partiview-0.6/src
+              % make clean                (if you really must compile a new executable)
+              % ./configure               (GNU autoconf toolset to ease installation)
+              % make depend               (might need to make new local dependancies)
+              % make partiview            (should not have to edit Makefile anymore)
+       ______________________________________________________________________
+
+
+
+  If you encounter difficulties of locating either the FLTK or
+  MESA/OpenGL libraries, configure script options can specify them:
+  --with-fltk=[4mdirname[24m names the directory which contains the lib and FL
+  subdirectories, --with-mesa=[4mdirname[24m can specify the Mesa installation
+  directory [??], and --with-kira=[4mdirname[24m names the Starlab directory,
+  whose default value is taken from environment variable STARLAB_PATH if
+  that is set.
+
+
+  [1m1.4.  CVS[0m
+
+  Since version 0.5 partiview is under CVS control, and occasionally we
+  will stamp out a new release when we deem it stable. Anonymous or
+  read-only CVS access is also offered. Currently the CVS repository
+  machine is cvs.astro.umd.edu and you will need to setup your
+  developers account with Peter (teuben@astro.umd.edu). Here's a sample
+  session with some commonly used CVS commands:
+
+
+
+       ______________________________________________________________________
+        setenv CVSROOT   :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot
+        setenv CVSEDITOR emacs
+        setenv CVS_RSH   ssh           (not needed for pserver access though)
+
+        cvs login                      (only needed once, and only for pserver type access)
+
+        cvs checkout partiview              # get a new local sandbox to work in, or
+
+        cd partiview                        # goto the root directory of partiview
+        cvs -n -q update                    # check if others had made any changes
+        cvs update                          # if so, update your sandbox and/or resolve conflicts
+
+        cd partiview/src                    # goto the 'src' directory of partiview
+        ./configure
+        emacs partibrains.c                 # edit some files
+        make all                            # compile the program
+        ./partiview                         # test the program
+        emacs kira_parti.cc                 # edit another file
+        make all                            # check if it still compiles
+
+        cvs -n -q update                    # check if anybody else made changes
+        cvs update                          # if so, update your sandbox again, resolve conflicts
+
+        cvs commit                          # and commit your changes
+       ______________________________________________________________________
+
+
+
+  [1m1.5.  Compiling under Windows[0m
+
+  Partiview can be compiled from the command line on Windows using
+  either the Microsoft Visual C tools (cl, nmake, etc.) or using gcc/g++
+  with MinGW32, MSYS and w32api.  The MinGW route is currently the only
+  way to compile with kira/Starlab support.  There's no provision for
+  building partiview within the MS Visual Studio GUI.
+
+  To compile with Microsoft C:
+
+
+  1. Install FLTK using MS Visual C++ as described in its documentation.
+
+  2. Unpack the partiview distribution from its tarball or via CVS.
+
+  3. Edit the file partiview/src/partiview.mak, changing FLTK_DIR as
+     appropriate.
+
+  4. Run the vcvars32.bat script from the Developer Studio Bin
+     directory; this will set the MSVCDIR environment variable, add the
+     Bin directory to PATH, etc.
+
+  5. In the partiview/src directory, compile with
+
+
+              nmake -f partiview.mak
+
+
+  Dependencies are [4mnot[24m properly maintained by this Makefile, so use
+  nmake -f partiview.mak   clean if you change anything.
+
+
+  To compile with MinGW and company, you'll need to:
+
+  1. Install MinGW (gcc, etc.), its associated w32api libraries and
+     header files, and the MSYS suite of UNIX-like tools.  All three
+     packages are available at:
+     http://www.sourceforge.net/projects/mingw/ Recent releases of
+     w32api include MinGW versions of OpenGL libraries and headers,
+     which partiview needs.  As of June 2002, current versions seem to
+     be mingw-1.0.1-20010726, w32api-1.4-2, and MSYS-1.0.7.  Unpack the
+     .zip or .tar archives of MinGW and w32api; both packages are
+     intended to live in the same directory.  The MSYS package comes as
+     a self-extracting archive and can be extracted into a different
+     directory as desired.  (But don't attempt to merge the MSYS bin
+     directory contents into mingw/bin.)
+
+  2. Add both the MSYS bin subdirectory and MinGW bin subdirectory to
+     the Windows PATH environment variable, with the MSYS directory
+     coming earlier, e.g. in a command window
+
+
+           set path=%path%;C:\util\msys\1.0\bin;C:\util\mingw\bin
+
+
+
+  or the analogous setting of PATH using (on WinNT/2000 at least) My
+  Computer -> Control Panel -> System -> Environment to make a permanent
+  change to PATH.
+
+  3. Build FLTK using MinGW.  Unpack its source distribution and say
+
+
+           sh configure
+           make
+
+
+
+  4. Build the Starlab libraries, if desired:
+
+     a. You may need to install CVS for Windows.  Binary packages are
+        available; follow the Win32 link on
+        http://www.cvshome.org/downloads.html.  Put the resulting
+        cvs.exe file into the PATH somewhere.
+
+     b. Use CVS to checkout the Starlab sources into some directory:
+
+
+              cd C:\some\where
+              set CVSROOT=:pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot
+              cvs login
+              cvs checkout starlab
+              cd starlab
+
+
+
+     c. Copy templates\starlab_setup.bat to local\starlab_setup.bat, and
+        edit it.  Change the first two set commands: set STARLAB_PATH to
+        the installation directory -- in the above example, set
+        STARLAB_PATH=C:\some\where\starlab.  Also optionally update (or
+        remove) set PATH=...  to add MSYS and MinGW bin directories to
+        it.
+
+     d. From a Windows command window, type
+
+
+
+               local\starlab_setup
+               make libs
+
+
+
+     e. If successful, you should find in the lib directory the files
+        libdstar.a  libdyn.a  libnode.a  librdc.a  libsstar.a  libstd.a
+        libtdyn.a
+
+
+
+  5. Now, back in the partiview/src directory, use configure and make as
+     under Unix.  The MSYS package imposes its own UNIX-like syntax for
+     Windows pathnames, which you'll need to use as arguments to
+     configure and friends, with forward- instead of backslashes and a
+     /[4mdrive-letter[24m prefix.  Also, if typing to a Windows command-window,
+     shell scripts like configure must be explicitly fed to sh.  Thus
+     for example if FLTK is installed in C:\util\fltk-1.1.0 and Starlab
+     is in F:\src\starlab, then you might build partiview by typing
+
+
+               sh configure --with-fltk=/c/util/fltk-1.1.0  --with-kira=/f/src/starlab
+               make
+
+
+
+  Note there's no need to specify the location of the OpenGL or other
+  libraries; the configure script and MinGW tools already know where to
+  find them.
+
+
+
+  [1m2.  Directory structure[0m
+
+
+  Here is the directory structure, as per version 0.1:
+
+
+
+            partiview/             root directory
+            partiview/src          source code
+            partiview/data         sample datafiles (e.g. Hipparcos Bright Star Catalogue)
+            partiview/doc          manual (sgml, and derived  html, txt, ps/dvi)
+            partiview/nemo         NEMO specific converters/code
+            partiview/starlab      STARLAB specific converters/code
+            partiview/tutor        examples of tutorial type code (added in 0.2)
+            partiview/windows      windows executables/support (old)
+
+
+
+  [1m3.  Running the program[0m
+
+  First we describe a simple example how to run partiview with a
+  supplied sample dataset. Then we describe the different windows that
+  partiview is made up of, and the different commands and keystrokes it
+  listens to.
+
+
+  [1m3.1.  Example 1: Hipparcos Bright Star Catalogue 3-D viewing[0m
+
+
+  Start the program using one of the sample  "speck" files in the data
+  directory:
+
+
+
+       ______________________________________________________________________
+              % cd partiview/data
+              % ./hipbright
+       or
+              % partiview hipbright
+       ______________________________________________________________________
+
+
+
+  and this should come up with a display familiar to most of us who
+  watch the skies. You should probably enlarge the window a bit. Mine
+  comes up in roughly a 300 by 300 display window, which may be a bit
+  small (certainly on my screen :-) (Hint: the .partiviewrc file may
+  contain commands like eval winsize 600 400.)
+
+
+  Hit the TAB key to bring focus to the (one line) command window
+  inbetween the log screen (top) and viewing screen (bottom). Type the
+  commands
+
+
+
+       ______________________________________________________________________
+               fov 50                          (field of view 50 degrees)
+               jump 0 0 0 80 70 60             (put yourself in the origin
+                                               and look at euler angles
+                                               RxRyRz (80,70,60)
+       ______________________________________________________________________
+
+
+
+  and it should give another nice comfy view :-)  If you ever get lost,
+  and this is not hard, use the jump command to go back to a known
+  position and/or viewing angle.
+
+
+                              partiview view
+
+
+  Note that spatial units for this dataset are parsecs, though angular
+  units are degrees for any data in partiview.
+
+  Now play with the display, use the 't', 'r', 'f' and 'o' keys (keys
+  are case sensitive) in the viewing window and use the left and mouse
+  buttons down to (carefully) move around a bit, and make yourself
+  comfortable with moving around. Using the 't' button you get some idea
+  of the distance of the stars by moving back and forth a little (the
+  parallax trick). In fact, if you 't' around a little bit, you may see
+  a green line flashing through the display. This is one of the  RGB
+  (xyz) axes attached to the (0,0,0) [our sun] position.  You should see
+  Procyon and Sirius exhibit pretty large parallaxes, but Orion is
+  pretty steady since it is several hundred parsecs away.  If you move
+  the right mouse button you will zoom in/out and should see our Sun
+  flash by with the red-green-blue axes.
+
+  The RGB axes represent the XYZ axes in a (right-handed) cartesian
+  system. For the Hipparcos data the X (red) axis points to RA=0h, Y
+  (green) axis to RA=6h, both in the equatorial plane, and the Z (blue)
+  axis points to the equatorial north pole.
+
+  Try and use the middle mouse button (or the 'p' key)  to click on
+  Sirius or Procyon, and see if you can get it to view its properties.
+  Now use the 'P' key to switch center to rotation to that star. Sirius
+  is probably a good choice. Move around a bit, and try and get the sun
+  and orion in the same view :-)
+
+  [NOTE: these Hipparcos data do not have reliably distance above
+  100-200 pc, so Orion's individual distances are probably uncertain to
+  30%]
+
+
+  A little bit on the types of motion, and what the mouse buttons do
+
+
+
+       ______________________________________________________________________
+
+                     |     left            middle          right
+                     |     Button-1        Button-2        Button-3         Shift Button-1
+       ------------------------------------------------------------------------------------
+       f (fly)       |     fly             'pick'          zoom
+       o (orbit)     |     orbit           'pick'          zoom
+       r (rotate)    |     rotate X/Y      'pick'          rotate Z            translate
+       t (translate) |     translate       'pick'          zoom
+       ______________________________________________________________________
+
+
+
+  The point of origin for rotations can be changed with the 'P' button.
+  First you can try and pick ('p' or Button-2) a point, and if found,
+  hit 'P' to make this point the new rotation center default.
+
+
+
+       ______________________________________________________________________
+       red   = X axis
+       green = Y axis
+       blue  = Z axis
+       ______________________________________________________________________
+
+
+
+  To choose an arbitrary center of rotation, use the center command.
+
+
+  [1m3.2.  Top Row[0m
+
+  The top row contains some shortcuts to some frequently used commands.
+  From left to right, it should show the following buttons:
+
+      [1mMore[0m
+        Offers some mode switches as toggles: inertia for continues spin
+        or motion, and an H-R Diagram to invoke a separate H-R diagram
+        window for datasets that support stellar evolution.
+
+
+      [1m[g1][0m
+        Pulldown g1, g2, ... (or whichever group) is the currently
+        selected group. See  object command to make aliases which group
+        is defined to what object. If multiple groups are defined, the
+        next row below this contains a list of all the groups, and their
+        aliases, so you can toggle them to be displayed.
+
+
+      [1m[f]ly[0m
+        Pulldown to select fly/orbit/rot/tran, which can also be
+        activate by pressing the f/o/r/t keys inside the viewing window.
+
+
+      [1mpoint[0m
+        Toggle to turn the points on/off. See also the points command.
+
+
+      [1mpoly[0m
+        Toggle to turn polygons on/off. See also the polygon command.
+
+
+      [1mlbl[0m
+        Toggle to turn labels on/off. See also the label command.
+
+
+      [1mtex[0m
+        Toggle to turn textures on/off. See also the texture command.
+
+
+      [1mbox[0m
+        Toggle to turn boxes on/off. See also the boxes command.
+
+
+      [1m#.###[0m
+        The current displayed value of the logslum lum slider (see next)
+
+
+      [1mlogslum lum[0m
+        Slider controlling the logarithm of the [1mdatavar [22mvariable
+        selected as luminosity (with the lum command).
+
+
+
+  [1m3.3.  Group row (optional)[0m
+
+  When more than one group has been activated (groups of particles or
+  objects can have their own display properties, and be turned on and
+  off at will), a new Group Row will appear as the 2nd row.
+
+  Left-clicking (button 1) on a button toggles the display of that
+  group; right-clicking (button 3) enables display of the group, and
+  also selects it as the current group for GUI controls and text
+  commands.
+
+
+  [1m3.4.  Time Animation rows (Optional)[0m
+
+  For time-dependent data, the third and fourth row from the top control
+  the currently displayed data-time.  This time-control bar is only
+  visible when the object has a nonzero time range.
+      [1mT [22mShows the current time (or offset from the tripmeter).  The
+        absolute time is the sum of the [1mT [22mand [1m+ [22mfields.  Both are
+        editable.  See also the step control command.
+
+
+     [1mtrip[0m
+        Press to mark a reference point in time.  The T field becomes
+        zero, and the + field (below) is set to current time.  As time
+        passes, T shows the offset from this reference time.
+
+
+     [1mback[0m
+        Press to return to reference time (sets T to 0).
+
+
+      [1m+ [22mCurrent last time where tripmeter was set. You can reset to the
+        first frame with the command step 0
+
+
+      [1mdial[0m
+        Drag to adjust the current time.  Sensitivity depends on the
+        speed setting; dragging by one dial-width corresponds to 0.1
+        wall-clock second of animation, i.e. 0.1 * [4mspeed[24m in data time
+        units.
+
+
+      [1m|<[0m
+
+      [1m>|[0m
+        Step time backwards or forwards by 0.1 * [4mspeed[24m data time units.
+        See also the < and > keyboard shortcuts.
+
+
+      [1m<<[0m
+
+
+      [1m>>[0m
+        toggle movie move forwards in time Toggle animating backwards or
+        forwards in time, by 1 * [4mspeed[24m data time units per real-time
+        second.  See also the {, ~, and } keyboard shortcuts.
+
+
+      [1m#.####[0m
+        (Logarithmic) value denoting [4mspeed[24m of animation.  See also the
+        speed control command.
+
+
+
+  [1m3.5.  Camera (path) Animation row[0m
+
+  The fifth (or 4th or 3rd, depending if Group and/or Time rows are
+  present) row from the top controls loading and playing sequences of
+  moving through space.
+
+
+
+      [1mPath...[0m
+        Brings up a filebrowser to load a [1m.wf [22mpath file. This is a file
+        with on each line 7 numbers: xyz location, RxRyRz viewing
+        direction, and FOV (field of view).  The rdata command loads
+        such path files too.
+
+
+
+      [1mPlay[0m
+        Play the viewpoint along the currently loaded path, as the play
+        command does.  Right-click for a menu of play-speed options.
+
+
+      [1m<< < [###] >>>[0m
+        Step through camera-path frames.  See also frame control
+        command.
+
+
+      [1mslider[0m
+        Slides through camera path, and displays current frame.
+
+
+
+  [1m3.6.  Logfile window[0m
+
+  The third window from the top contains a logfile of past commands and
+  responses to them, and can be resized by dragging the bar between
+  command window and viewing window.  The Logfile window also has a
+  scroll bar on the left. You can direct the mouse to any previous
+  command, and it will show up in the command window. Using the arrow
+  keys this command can then be edited.
+
+
+
+  [1m3.7.  Command window[0m
+
+  The Command window is a single line entry window, in which Control
+  Commands can be given.  Their responses appear in the Logfile window
+  and on the originating console. (unlike Data Commands, which show no
+  feedback). You can still give Data Commands in this window by
+  prefixing them with the add command.  The Up- and Down-arrow keys (not
+  those on the keypad) scroll through previous commands, and can be
+  edited using the arrow keys and a subset of the emacs control
+  characters.
+
+
+
+  [1m3.8.  Viewing window[0m
+
+  The (OpenGL) Viewing window is where all the action occurs.  Typically
+  this is where you give single keystroke commands and/or move the mouse
+  for an interactive view of the data.  It can be resized two ways:
+  either by resizing the master window, or by picking up the separator
+  between Viewing window and Command window above.
+
+
+  [1m3.9.  Example 2: a (starlab) animation[0m
+
+  Setting up a small animation in for example Starlab can be done quite
+  simply as follows: (see also the primbim16.mk makefile to create a
+  standard one):
+
+
+
+  ______________________________________________________________________
+    % makeplummer -i -n 20 | makemass -l 0.5 -u 10.0 | scale -s | kira -d 2 -D x10 > run1
+    % partiview run1.cf
+    % cat run1.cf
+
+    kira run1
+    eval every
+    eval lum mass 0 0.01
+    eval psize 100
+    eval cment 1  1 .7 .3
+    eval color clump exact
+
+  ______________________________________________________________________
+
+
+
+  Alternatively, if you had started up partiview without any arguments,
+  the following Control Command (see below) would have done the same
+
+
+
+       ______________________________________________________________________
+         read run1.cf
+
+       ______________________________________________________________________
+
+
+
+  [1m3.10.  Example 3: stereo viewing[0m
+
+  The 's' key within the viewing window toggles stereo viewing. By
+  default each object is split in a blue and a red part, that should be
+  viewed with a pair of red(left)/blue(right) glasses. Red/green glasses
+  will probably work too.  Crosseyed viewing is also available if
+  selected by [1mstereo cross[22m.  See [1mstereo [22mand [1mfocallen [22min the View
+  Commands section.
+
+
+  [1m3.11.  Example 4: subsetting[0m
+
+  In the data directory, run
+
+    partiview hip.cf
+
+
+  One of the data fields for these stars is the [4mB-V[24m color, colorb_v,
+  abbreviatable to just color.  Look at just the bluest stars: try
+
+    thresh color < -.1
+
+
+  Back off to a large distance (drag with right mouse button, and drag
+  the logslum lum slider to brighten) and look at the distribution of
+  these blue stars.  The Orion spiral-arm spur, extending generally
+  along the +Y (green) axis, has lots of them.  Now look at more reddish
+  stars, those with .5 <= [4mB-V[24m <= 1.5, with:
+
+    thresh color  .5  1.5
+
+
+  These are much more uniformly distributed in the galactic plane.
+  Return to seeing all stars, with:
+
+    see all
+
+
+  or re-view the threshold-selected subset (reddish stars) with
+
+    see thresh
+
+
+  or its complement with
+
+    see -thresh
+
+
+
+  [1m4.  Commands[0m
+
+  There are two types of commands in partiview: Control Commands and
+  Data Commands.  Probably the most important difference between the two
+  is that Control Commands return feedback to the user, whereas Data
+  Commands are interpreted without comment.  The command window expects
+  to receive Control Commands.  However, it is possible to enter a Data
+  Command where a Control Command is expected, using the add command
+  prefix. Likewise, a Control Command may be given where data is
+  expected, using the eval prefix, e.g. in a data (or .cf) file. The
+  real (Control) Command expects data commands, but if Control Commands
+  are needed, they need to be preceded with the eval command. See also
+  the previous [1mstarlab [22mexample.
+
+
+
+  [1m4.1.  Control Commands[0m
+
+
+  (see partibrains.c::specks_parse_args)
+
+  Control Commands are accepted in the Command window, and in some other
+  contexts.  Generally, partiview gives a response to every Control
+  Command, reporting the (possibly changed) status.
+
+  Typically, if parameters are omitted, the current state is reported.
+
+  Some commands apply to particles in the current group (see Object
+  group commands); others affect global things, such as time or display
+  settings.
+
+  Data Commands can also be given, if prefixed with add.
+
+
+
+  [1m4.2.  I/O Control Commands[0m
+
+
+
+     [1mread [4m[22mspecks-file[0m
+        Read a file containing Data Commands (typical suffix .cf or
+        .speck).
+     [1masync [4m[22munix-command[0m
+        Run an arbitrary unix command (invoked via /bin/sh) as a
+        subprocess of partiview.  Its standard output is interpreted as
+        a stream of control commands.  Thus partiview can be driven
+        externally, e.g. to record an animation (using the snapshot
+        command), or to provide additional GUI controls.  Several async
+        commands can run concurrently.  Examples are given later.
+        Warning: you cannot interrupt a started command, short of
+        hitting ESC to exit partiview.
+
+
+     [1madd [4m[22mdata-command[0m
+        Enter a Data Command where a Control Command is expected, e.g.
+        in the text input box.  For example,
+
+          add 10 15 -1 text blah
+
+
+     adds a new label "blah" at 10 15 -1, or
+
+       add kira myrun.out
+
+
+     loads a kira (starlab) output file.
+
+
+     [1meval [4m[22mcontrol-command[0m
+        Processes that control command just as if the eval prefix
+        weren't there.  Provided for symmetry: wherever either a control
+        command or a data command is expected, entering eval [4mcontrol-[0m
+        [4mcommand[24m ensures that it's taken as a control command.
+
+
+
+     [1madd filepath (data-command)[0m
+        Determines the list of directories where all data files, color
+        maps, etc.  are sought.  See the filepath entry under Data
+        Commands.
+
+
+
+  [1m4.3.  Object Group Control Commands[0m
+
+  Partiview can load multiple groups of particles, each with independent
+  display settings, colormaps, etc.  When more than one group is loaded,
+  the Group Row appears on the GUI, with one toggle-button for each
+  group.  Toggling the button turns display of that group on or off.
+  Right-clicking turns the group unconditionally on, and selects that
+  group as the current one for other GUI controls.
+
+  Many Control Commands apply to the [4mcurrently[24m [4mselected[24m group.
+
+  Groups always have names of the form g[4mN[24m for some small positive [4mN[24m;
+  each group may also have an alias.
+
+
+     [1mg[4m[22mN[24m Select group g[4mN[24m.  Create a new group if it doesn't already
+        exist.
+
+
+     [1mg[4m[22mN[24m=[4malias[0m
+        Assign name [4malias[24m to group g[4mN[24m.  Note there must be no blanks
+        around the = sign.
+
+
+     [1mobject [4m[22mobjectname[0m
+        Likewise, select object [4mobjectname[24m, which may be either an alias
+        name or g[4mN[24m.
+
+
+     [1mg[4m[22mN[24m [4mcontrol-command[0m
+
+     [1mobject [4m[22mobjectname[24m [4mcontrol-command[0m
+        Either form may be used as a [4mprefix[24m to any control command to
+        act on the specified group, e.g. object fred poly on
+
+
+     [1mgall [4m[22mcontrol-command[0m
+        Invoke the given [4mcontrol-command[24m in all groups.  For example, to
+        turn display of group 3 on and all others off, use:
+
+
+          gall off
+          g3 on
+
+
+
+     [1mon[0m
+
+     [1menable[0m
+        Either one will enable the display of the currently selected
+        group (as it is by default).
+
+
+     [1moff[0m
+
+     [1mdisable[0m
+        Either one will turn off the display of the current group.
+
+
+
+  [1m4.4.  View Control commands[0m
+
+  View commands affect the view; they aren't specific to data groups.
+
+
+     [1mfov [4m[22mfloat[0m
+        Angular field of view (in degrees) in Y-direction.
+
+
+     [1mcen[ter] [4m[22mX[24m [4mY[24m [4mZ[24m [[4mRADIUS[24m]
+        Set point of interest.  This is the center of rotation in
+        [o]rbit and [r]otate modes.  Also, in [o]rbit mode, translation
+        speed is proportional to the viewer's distance from this point.
+        The optional [4mRADIUS[24m (also set by censize) determines the size of
+        the marker crosshair, initially 1 unit.
+
+
+     [1mcen[ter] [[4m[22mX[24m [4mY[24m [4mZ[24m [[4mRADIUS[24m]]
+        int[erest] [[4mX[24m [4mY[24m [4mZ[24m [[4mRADIUS[24m]]" Set point of interest.  This is the
+        center of rotation in [o]rbit and [r]otate modes.  And, in
+        [o]rbit mode, translation speed is proportional to the viewer's
+        distance from this point.  The optional [4mRADIUS[24m (also set by
+        censize) determines the size of the marker crosshair, initially
+        1 unit.
+
+        ****  why is center/interest commented out in the first example.
+        Originally this command was documented twice, the first one has
+        /interest commented out.
+     [1mcensize [[4m[22mRADIUS[24m]
+        Set size of point-of-interest marker.
+
+
+     [1mwhere  [4m[22m(also)[24m  w
+        Report the 3-D camera position and forward direction vector.
+
+
+     [1mclip [4m[22mNEAR[24m [4mFAR[0m
+        Clipping distances.  The computer graphics setup always requires
+        drawing only objects in some finite range of distances in front
+        of the viewpoint.  Both values must be strictly positive, and
+        their ratio is limited; depending on the graphics system in use,
+        distant objects may appear to blink if the [4mFAR[24m/[4mNEAR[24m ratio
+        exceeds 10000 or so.
+
+        To set the far clip range without changing the near, use a non-
+        numeric near clip value, e.g. clip - 1000.
+
+
+
+     [1mjump [[4m[22mX[24m [4mY[24m [4mZ[24m] [[4mRx[24m [4mRy[24m [4mRz[24m]
+        Get or set the current position (XYZ) and/or viewing (RxRyRz)
+        angle.
+
+
+     [1mreadpath[0m
+        Read a Wavefront (.wf) file describing a path through space.
+
+
+     [1mrdata[0m
+        Synonym for readpath.
+
+
+     [1mplay [4m[22mspeed[24m[f]
+        Play the currently loaded (from readpath/rdata) camera animation
+        path, at [4mspeed[24m times normal speed, skipping frames as needed to
+        keep up with wall-clock time.  (Normal speed is 30 frames per
+        second.)  With "f" suffix, displays every [4mspeed[24m-th frame,
+        without regard to real time.
+
+
+     [1mframe [[4m[22mframeno[24m]
+        Get or set the current frame the [4mframeno[24m-th.
+
+
+     [1mupdate[0m
+        Ensures the display is updated, as before taking a snapshot.
+        Probably only useful in a stream of control commands from an
+        async subprocess.
+
+
+     [1mwinsize [[4m[22mXSIZE[24m [[4mYSIZE[24m]]
+
+     [1mwinsize [4m[22mXSIZE[24mx[4mYSIZE[24m+[4mXPOS[24m+[4mYPOS[0m
+        Resize graphics window.  With no arguments, reports current
+        size.  With one argument, resizes to given width, preserving
+        aspect ratio.  With two arguments, reshapes window to that
+        height and width.  With complete X geometry specification (no
+        embedded spaces), e.g. winsize 400x350+20-10, also sets position
+        of graphics window, with +X and +Y measured from left/top, -X
+        and -Y measured from right/bottom of screen.
+
+
+     [1mdetach [full|hide]  [[4m[22m+XPOS+YPOS[24m]
+        Detach graphics window from GUI control strip and optionally
+        specify position of control strip.  With full or hide, makes
+        graphics window full-screen with GUI visible or hidden,
+        respectively.  With neither full nor hide, the graphics window
+        is detached but left at its current size.
+
+        The [4m+XPOS+YPOS[24m is a window position in X window geometry style,
+        so e.g. detach full -10+5 places the GUI near the upper right
+        corner of the screen, 10 pixels in from the right and 5 pixels
+        down from the top edge.
+
+        If you don't mind typing blindly, it's still possible to enter
+        text-box commands even with the controls hidden; press the [4mTab[0m
+        key before each command to ensure that input focus is in the
+        text box.  Use [4mTab[24mdetach full[4mEnter[24m to un-hide a hidden control
+        strip.
+
+
+     [1mbgcolor [4m[22mR[24m [4mG[24m [4mB[0m
+        Set window background color (three R G B numbers or one
+        grayscale value).
+
+
+
+     [1mfocallen [4m[22mdistance[0m
+        Focal length: distance from viewer to a typical object of
+        interest.  This affects stereo display (see below) and
+        navigation: the speed of motion in [t]ranslate and [f]ly modes
+        is proportional to this distance.
+
+
+     [1mstereo [on|off|redcyan|glasses|cross|left|right] [[4m[22mseparation[24m]
+        Stereo display.  Also toggled on/off by typing 's' key in
+        graphics window.  Where hardware allows it, stereo glasses
+        selects CrystalEyes-style quad-buffered stereo.  All systems
+        should be capable of stereo redcyan, which requires wearing
+        red/green or red/blue glasses, and of cross (crosseyed), which
+        splits the window horizontally.  left and right show just that
+        eye's view, and may be handy for taking stereo snapshots.
+
+        Useful [4mseparation[24m values might be 0.02 to 0.1, or -0.02 to -0.1
+        to swap eyes.  See also focallen command, which gives the
+        distance to a typical object of interest: left- and right-eye
+        images of an object at that distance will coincide on the
+        screen.
+
+        Virtual-world eyes will be separated by distance 2 * [4mfocallen[24m [4m*[0m
+        [4mseparation[24m, with convergence angle 2 * arctan([4mseparation[24m).
+
+        See also the winsize and detach commands for control over
+        graphics window size and placement.
+
+        Beware: some systems which support hardware ("glasses") stereo
+        also require that the display be set to a stereo-capable video
+        mode.  Partiview does not do this automatically.  For example,
+        on stereo-capable SGI Irix systems, you may need to type (to a
+        unix shell) /usr/gfx/setmon -n 1024x768_96s to allow stereo
+        viewing and something like /usr/gfx/setmon -n 72 to revert.
+        Otherwise, turning partiview's stereo on will just show the left
+        eye's view -- displacing the viewpoint but nothing else.
+
+
+     [1msnapset [[22m-n [4mFRAMENO[24m] [4mFILESTEM[24m [[4mFRAMENO[24m]
+        Set parameters for future snapshot commands.  [4mFILESTEM[24m may be a
+        printf format string with frame number as argument, e.g. snapset
+        pix/%04d.ppm, generating image names of pix/0000.ppm,
+        pix/0001.ppm, etc.  If [4mFILESTEM[24m contains no % sign, then
+        .%03d.ppm.gz is appended to it, so snapset ./pix/fred yields
+        snapshot images named ./pix/fred.000.ppm.gz etc.
+
+        Frame number [4mFRAMENO[24m (default 0) increments with each snapshot
+        taken.
+
+
+
+     [1msnapshot [[4m[22mFRAMENO[24m]
+        Capture a snapshot image of the current view.  Use snapset to
+        specify the output image name.  Default format is snap.%03d.tif.
+
+        Partiview generally invokes the ImageMagick program convert(1),
+        which must be installed and be on the user's $PATH.  Convert
+        determines the type of image (jpeg, sgi, bmp, etc.) based on the
+        file suffix.
+
+        Convert is not needed if the snapset [4mFILESTEM[24m ends in .ppm.gz
+        (invokes gzip rather than convert) or .ppm (no external program
+        required).
+
+
+
+  [1m4.5.  Particle Display Control Commands[0m
+
+  These commands affect how particles (in the current group) are
+  displayed.
+
+
+     [1mpsize [4m[22mscalefactor[0m
+        All particle luminosities (as specified by lum command) are
+        scaled by the product of two factors: a [4mlumvar[24m-specific factor
+        given by slum, and a global factor given by psize.  So the
+        intrinsic brightness of a particle is [4mvalue-specified-by-[24mlum *
+        [4mslum-for-current-lumvar[24m * [4mpsize-scalefactor[24m.
+
+
+     [1mslum [4m[22mslumfactor[0m
+        Data-field specific luminosity scale factor, for current choice
+        of [4mlumvar[24m as given by the lum command.  A [4mslumfactor[24m is recorded
+        independently for each data field, so if data fields mass and
+        energy were defined, one might say
+
+
+          lum mass
+          slum 1000
+          lum energy
+          slum 0.25
+
+
+
+     having chosen each variable's [4mslumfactor[24m for useful display, and
+     then freely switch between lum mass and lum energy without having
+     to readjust particle brightness each time.
+
+
+
+     [1mptsize [4m[22mminpixels[24m [4mmaxpixels[0m
+        Specifies the range of [4mapparent[24m sizes of points, in pixels.
+        Typical values might be ptsize 0.1 5.  The graphics system may
+        silently impose an upper limit of about 10 pixels.
+
+
+
+     [1mpolysize [on|off] [a|s|r][0m
+
+     [1mpolylum[0m
+
+     [1mpolyminpixels[0m
+
+     [1mpolymin [4m[22mminradius[24m [[4mmaxradius[24m]
+
+     [1mcolor[0m
+        Specify how particles are colored.  Generally, a linear function
+        of some data field of each particle becomes an index into a
+        colormap (see cmap, cment).
+
+         [1mcolor  [4m[22mcolorvar[24m  [[4mminval[24m [4mmaxval[24m]
+           Use data field [4mcolorvar[24m (either a name as set by datavar or a
+           0-based integer column number) to determine color.  Map
+           [4mminval[24m to color index 1, and [4mmaxval[24m to the next-to-last entry
+           in the colormap ([4mNcmap-2[24m).  The 0th and last ([4mNcmap-1[24m)
+           colormap entry are used for out-of-range data values.
+
+           If [4mminval[24m and [4mmaxval[24m are omitted, the actual range of values
+           is used.
+
+
+         [1mcolor  [4m[22mcolorvar[24m  exact  [[4mbaseval[24m]
+           Don't consider field [4mcolorvar[24m as a continuous variable;
+           instead, it's integer-valued, and mapped one-to-one with
+           color table slots.  Data value [4mN[24m is mapped to color index
+           [4mN+baseval[24m.
+
+
+         [1mcolor  [4m[22mcolorvar[24m  -exact
+           Once the exact tag is set (for a particular data-field), it's
+           sticky.  To interpret that data field as a continuous,
+           scalable variable again, use -exact.
+
+
+         [1mcolor  const  [4m[22mR[24m [4mG[24m [4mB[0m
+           Show all particles as color [4mR[24m [4mG[24m [4mB[24m, each value in range 0 to
+           1, independent of any data fields.
+
+
+     [1mlum[0m
+        Specify how particles' intrinsic luminosity is computed: a
+        linear function of some data field of each particle.
+
+         [1mlum [4m[22mlumvar[24m  [[4mminval[24m [4mmaxval[24m]
+           Map values of data field [4mlumvar[24m (datavar name or field
+           number) to luminosity.  The (linear) mapping takes field
+           value [4mminval[24m to luminosity 0 and [4mmaxval[24m to luminosity 1.0.
+
+           If [4mminval[24m and [4mmaxval[24m are omitted, the actual range of values
+           is mapped to the luminosity range 0 to 1.
+
+           Note that the resulting luminosities are then scaled by the
+           psize and slum scale factors, and further scaled according to
+           distance as specified by fade, to compute apparent brightness
+           of points.
+
+
+         [1mlum const [4m[22mL[0m
+           Specify constant particle luminosity [4mL[24m independent of any
+           data field values.
+
+
+
+     [1mfade [planar|spherical|linear [4m[22mrefdist[24m|const [4mrefdist[24m]
+        Determines how distance affects particles' apparent brightness
+        (or "size").  The default fade planar gives 1/r^2 light falloff,
+        with r measured as distance from the view plane.  fade spherical
+        is also 1/r^2, but with r measured as true distance from the
+        viewpoint.  fade linear [4mrefdist[24m gives 1/r light falloff -- not
+        physically accurate, but useful to get a limited sense of depth.
+        fade const [4mrefdist[24m gives constant apparent brightness
+        independent of distance, and may be appropriate for orthographic
+        views.
+
+        The [4mrefdist[24m for linear and const modes is that distance [4mr[24m at
+        which apparent brightness should match that in the 1/r^2 modes
+        -- a distance to a "typical" particle.
+
+
+     [1mlabelminpixels[0m
+
+     [1mlabelsize[0m
+
+     [1mlsize[0m
+
+     [1mpoint[s]   [on|off][0m
+        Turn display of points on or off.  With no argument, toggles
+        display.
+
+
+     [1mpoly[gons]  [on|off][0m
+        Turn display of points on or off.  With no argument, toggles
+        display.
+
+
+     [1mtexture [on|off][0m
+        Turn display of textures on or off.  With no argument, toggles.
+
+
+     [1mlabel[s] [on|off][0m
+        Turn display of label text on or off.  With no argument,
+        toggles.
+
+
+
+     [1mtxscale  [4m[22mscalefactor[0m
+        Scale size of all textures relative to their polygons.  A scale
+        factor of 0.5 (default) make the texture square just fill its
+        polygon, if polysides is 4.
+
+
+     [1mpolyorivar[0m
+        Report setting of polyorivar data-command, which see.
+
+
+     [1mtexturevar[0m
+        Report setting of texturevar data-command, which see.
+
+
+     [1mlaxes  [on|off][0m
+        Toggle label axes.  When on, and when labels are displayed,
+        shows a
+
+
+     [1mpolyside(s)[0m
+        Number of sides a polygon should have.  Default 11, for fairly
+        round polygons.  For textured polygons, polysides 4 might do as
+        well, and be slightly speedier.
+
+     [1mfast[0m
+        see also ptsize
+
+
+     [1mptsize  [4m[22mminpixels[24m [[4mmaxpixels[24m]
+        Specifies range of apparent (pixel) size of points.  Those with
+        computed sizes (based on luminosity and distance) smaller than
+        [4mminpixels[24m are randomly (but repeatably) subsampled -- i.e. some
+        fraction of them are not drawn.  Those computed to be larger
+        than [4mmaxpixels[24m are drawn at size [4mmaxpixels[24m.
+
+
+     [1mgamma [4m[22mdisplaygamma[0m
+        Tells the particle renderer how the display + OpenGL relates
+        image values to visible lightness.  You don't need to change
+        this, but may adjust it to minimize the brightness glitches when
+        particles change size.  Typical values are gamma 1 through gamma
+        2.5 or so.  Larger values raise the apparent brightness of dim
+        things.
+
+
+     [1malpha [4m[22malpha[0m
+        Get or set the alpha value, in the range 0 to 1; it determines
+        the opacity of polygons.
+
+
+     [1mspeed[0m
+        For time-dependent data, advance datatime by this many time
+        units per wall-clock second.
+
+
+     [1mstep [[4m[22mtimestep[24m]
+        For time-varying data, sets current timestep number.  Real-
+        valued times are meaningful for some kinds of data including
+        those from Starlab/kira; for others, times are rounded to
+        nearest integer.  If running, step also stops datatime
+        animation.  (See run.)
+
+
+     [1mstep [+|-][4m[22mdeltatimestep[0m
+        If preceded with a plus or minus sign, adds that amount to
+        current time.
+
+
+        (note that fspeed has been deprecated)
+
+
+     [1mrun[0m
+        Continue a stopped animation (see also step).
+
+
+     [1mtfm [-v] [[4m[22mnumbers...[24m]
+        Object-to-world transformation.  May take 1, 6, 7, 9 or 16
+        parameters: either [4mscalefactor[24m, or [4mtx[24m [4mty[24m [4mtz[24m [4mrx[24m [4mry[24m [4mrz[0m
+        [4mscalefactor[24m>], or 16 numbers for 4x4 matrix, or 9 numbers for
+        3x3 matrix.  See [4mCoordinates[24m [4mand[24m [4mCoordinate[24m [4mTransformations[24m.
+
+        With no numeric parameters, reports the current object-to-world
+        transform.  Use tfm -v to see the transform and its inverse in
+        several forms.
+
+
+     [1mmove [g[4m[22mN[24m] {on|off}
+        Normally, navigation modes [r]otate and [t]ranslate just adjust
+        the viewpoint (camera).  However, if you turn move on, then
+        [r]otate and [t]ranslate move the currently-selected object
+        group instead, e.g. to adjust its alignment relative to other
+        groups.  ([o]rbit and [f]ly modes always move the camera.)
+
+        To indicate that move mode is enabled, the control strip shows
+        the selected group's name in bold italics, as [4m[g3][24m.  Use move
+        off to revert to normal.  The tfm command reports the current
+        object-group-to-global-world transformation.
+
+
+     [1mfwd[0m
+
+     [1mdatawait   on|off[0m
+        For asynchronously-loaded data (currently only ieee data
+        command), say whether wait for current data step to be loaded.
+        (If not, then keep displaying previous data while loading new.)
+
+
+     [1mcmap    [4m[22mfilename[0m
+        Load (ascii) filename with RGB values, for coloring particles.
+        The color command selects which data field is mapped to color
+        index and how.
+
+        Colormaps are text files, beginning with a number-of-entries
+        line and followed by R G B or R G B A entries one per line; see
+        the [4mColormaps[24m section.
+
+
+     [1mvcmap -v [4m[22mfieldname[24m  [4mfilename[0m
+        Load colormap as with cmap command.  But use this colormap only
+        when the given data field is selected for coloring.  Thus the
+        cmap color map applies to all data fields for which no vcmap has
+        ever been specified.
+
+
+     [1mcment  [4m[22mcolorindex[24m  [[4mR[24m [4mG[24m [4mB[24m]
+        Report or set that colormap entry.
+
+
+     [1mrawdump [4m[22mdump-filename[0m
+        All particle attributes (not positions though) are written to a
+        [4mdump-filename[24m.  Useful for debugging.  Warning: it will happily
+        overwrite an existing file with that name.
+
+
+
+  [1m4.6.  Particle subsetting & statistics[0m
+
+
+
+     [1mclipbox ...[0m
+        see cb below.
+
+
+     [1mcb ....[0m
+        Display only a 3D subregion of the data -- the part lying within
+        the clipbox.
+
+        [1mcb [4m[22mxmin[24m [4mymin[24m [4mzmin[24m  [4mxmax[24m [4mymax[24m [4mzmax[0m
+           Specified by coordinate ranges.  Note only spaces are used to
+           separate the 6 numbers.
+
+        [1mcb [4m[22mxcen,ycen,zcen[24m [4mxrad,yrad,zrad[0m
+           Specified by center and "radius" of the box.  Note no spaces
+           after the commas!
+        [1mcb [4m[22mxmin,xmax[24m [4mymin,ymax[24m [4mzmin,zmax[0m
+           Specified by coordinate ranges.
+
+        [1mcb [22moff
+           Disable clipping.  The entire dataset is again visible.
+
+        [1mcb [22mon
+           Re-enable a previously defined clipbox setting. It will also
+           display the clipbox again
+
+        [1mcb [22mhide
+           Hide the clipbox, but still discard objects whose centers lie
+           outside it.
+
+        Note this command does not toggle clipping if no arguments given
+        (that would be handy and more in line with similar commands).
+        If no arguments given, it reports the current clipbox.
+
+
+     [1mthresh[0m
+        Display a subset of particles, chosen by the value of some data
+        field.  Each thresh command overrides settings from previous
+        commands, so it cannot be used to show unions or intersections
+        of multiple criteria.  For that, see the only command.  However,
+        unlike only, the thresh criterion applies to time-varying data.
+
+        [1mthresh [4m[22mfield[24m [4mminval[24m [4mmaxval[0m
+           Display only those particles where [4mminval[24m <= field [4mfield[24m <=
+           [4mmaxval[24m.  The [4mfield[24m may be given by name (as from datavar) or
+           by field number.
+
+        [1mthresh [4m[22mfield[24m <[4mmaxval[0m
+
+        [1mthresh [4m[22mfield[24m >[4mminval[0m
+           Show only particles where [4mfield[24m is <= or >= the given
+           threshold.
+
+        [1mthresh [off|on][0m
+           Disable or re-enable a previously specified threshold.
+
+
+     [1monly=  [4m[22mdatafield[24m  [4mvalue[24m  [4mminvalue-maxvalue[24m  <[4mvalue[24m >[4mvalue[24m ...
+
+     [1monly+  [4m[22mdatafield[24m  [4mvalue[24m  [4mminvalue-maxvalue[24m  <[4mvalue[24m >[4mvalue[24m ...
+
+     [1monly-  [4m[22mdatafield[24m  [4mvalue[24m  [4mminvalue-maxvalue[24m  <[4mvalue[24m >[4mvalue[24m ...
+        Scans particles (in the current timestep only!), finding those
+        where [4mdatafield[24m has value [4mvalue[24m, or has a value in range
+        [4mminvalue[24m <= value <= [4mmaxvalue[24m, or whatever.  Multiple value-
+        ranges may be specified to select the union of several sets.
+        The resulting set of particles is assigned to (only=), added to
+        (only+) or subtracted from (only-) the thresh selection-set.
+        Also display just particles in that selection-set, as if see
+        thresh had been typed.
+
+        The net effect is illustrated by these examples:
+
+        [1monly= type 1-3 5[0m
+           Show only particles of type 1, 2, 3 or 5.
+
+        [1monly- mass <2.3  >3.5[0m
+           After the above command, shows only the subset of type
+           1/2/3/5 particles AND have mass between 2.3 and 3.5.  (Note
+           that to take the intersection of two conditions, you must
+           subtract the complement of the latter one.  Maybe some day
+           there'll be an only&.
+     [1msee  [22mselexpr
+        Show just those particles in the selection-set selexpr.
+        Predefined set names are all, none, thresh and pick, and other
+        names may be defined by the sel command.  The default is see
+        all.  Using the thresh or only commands automatically switch to
+        displaying see thresh.
+
+        Note that you can see the complement of a named set, e.g. all
+        except the thresh-selected objects, with see -thresh.
+
+
+     [1msel [22mselname = selexpr
+        Compute a logical combination of selection-sets and assign them
+        to another such set.  The set membership is originally assigned
+        by thresh or only commands.  Yeah, I know this doesn't make
+        sense.  Need a separate section to document selection-sets.
+
+
+     [1msel [22mselexpr
+        Count the number of particles in the selection-set selexpr.
+
+
+     [1mclearobj[0m
+        Erase all particles in this group.  Useful for reloading on the
+        fly.
+
+
+     [1mevery   [4m[22mN[0m
+        Display a random subset (every [4mN[24m-th) of all particles.  E.g.
+        every 1 shows all particles, every 2 shows about half of them.
+        Reports current subsampling factor, and the current total number
+        of particles.
+
+
+     [1mhist [4m[22mdatafield[24m [-n [4mnbuckets[24m] [-l] [-c] [-t] [[4mminval[24m] [[4mmaxval[24m]
+        Generates a (numerical) histogram of values of [4mdatafield[24m, which
+        may be a named field (as from datavar) or a field index.
+        Divides the value range (either [4mminval[24m..[4mmaxval[24m or the actual
+        range of values for that field) into [4mnbuckets[24m equal buckets (11
+        by default).  Uses logarithmically-spaced intervals if -l (so
+        long as the data range doesn't include zero).  If a clipbox is
+        defined, use -c to count only particles within it.  If a thresh
+        or only subset is defined, use -t to count only the chosen
+        subset.
+
+
+     [1mbound  [w][0m
+        Reports 3D extent of the data.  With w, reports it in world
+        coordinates, otherwise in object coordinates.
+
+
+     [1mdatavar[0m
+
+     [1mdv [22mReport names and value ranges (over all particles in current
+        group) of all named data fields.
+
+
+
+  [1m4.7.  Boxes[0m
+
+
+     [1mshowbox  [4m[22mlist[24m [4mof[24m [4minteger[24m [4mbox[24m [4mlevel[24m [4mnumbers...[0m
+
+     [1mhidebox  [4m[22mlist[24m [4mof[24m [4minteger[24m [4mbox[24m [4mlevel[24m [4mnumbers...[0m
+
+     [1mbox[es] [off|on|only][0m
+        Turn box display off or on; or display boxes but hide all
+        particles.
+
+
+     [1mboxcmap [4m[22mfilename[0m
+        Color boxes using that colormap.  Each box's level number (set
+        by -l option of box data-command, default 0) is the color index.
+
+
+     [1mboxcment  [4m[22mcolorindex[24m  [[4mR[24m [4mG[24m [4mB[24m]
+        Get or set the given box-colormap index.  E.g. boxcment 0
+        reports the color of boxes created with no -l specified.
+
+
+     [1mboxlabel [on|off][0m
+        Label boxes by id number (set by -n option of box data-command).
+
+
+     [1mboxaxes [on|off][0m
+        Toggle or set box axes display mode.
+
+
+     [1mboxscale [float] [on|off][0m
+
+     [1mgobox [4m[22mboxnumber[0m
+
+     [1mgoboxscale[0m
+
+     [1mmenu fmenu[0m
+
+
+
+                                  BEGIN CAVEMENU
+                  pos P1 P2
+                  wall P1
+                  hid [P1]
+                  show [P1]
+                  h  [P1]
+                  demandfps [P1]
+                  font
+                  help
+                  ?
+                                  END CAVEMENU
+
+
+
+     [1mdatascale[0m
+
+
+  [1m4.8.  Data commands[0m
+
+
+  (see also partibrains.c::specks_read)
+
+  Data Commands can be placed in a data file.  Lines starting with #
+  will be skipped.
+
+  Control Commands can also be given, if prefixed with the eval command.
+
+
+
+     [1mread [4m[22mfile[0m
+        read a speck formatted file. Recursive, commands can nest.
+        (strtok ok??)  Note that read is also a Control Command, doing
+        exactly the same thing.
+
+
+     [1minclude  [4m[22mfile[0m
+        read a speck formatted file.
+
+
+     [1mieee [-t time] [4m[22mfile[0m
+        read a IEEEIO formatted file, with optional timestep number (0
+        based).  Support for this type of data must be explicitly
+        compiled into the program.
+
+
+     [1mkira [4m[22mfile[0m
+        read a kira formatted file. See the kiractl Control Command to
+        modify the looks of the objects.
+
+
+     [1msetenv name value[0m
+        Add (or change) a named variable of the environment variables
+        space of partiview. Enviroment variables, like in the normal
+        unix shell, can be referred to by prepending their name with a
+        $.  [4mNote[24m [4mthere[24m [4mprobably[24m [4mis[24m [4mnot[24m [4man[24m [4munsetenv[24m [4mcommand[24m.
+
+
+     [1mobject [4m[22mgN=ALIAS[0m
+        Defines/Selects a particular group number (N=1,2,3....) to an
+        ALIAS. In command mode you can use gN=ALIAS. Any data following
+        this command will now belong to this group.
+
+
+     [1mobject [4m[22mObjectName[0m
+        Select an existing group. Following data will now belong to this
+        group.
+
+
+     [1msdbvars [4m[22mvar[0m
+        Choose which data fields to extract from binary sdb files (any
+        of: mMcrogtxyzSn) for subsequent sdb commands.
+
+
+     [1msdb [-t time] [4m[22mfile[0m
+        Read an SDB (binary) formatted file, with optional timestep
+        number.  (Default time is latest datatime, or 0.)
+
+
+     [1mpb [-t time] [4m[22mfile[0m
+        Read a .pb (binary) particle file, with optional timestep
+        number.  (Default time is latest datatime, or 0.)  A .pb file
+        contains (all values 32-bit integer or 32-bit IEEE float):
+
+        1. magic number, 0xFFFFFF98  (int32)
+
+        2. byte offset of first particle (int32)
+
+        3. number of attributes (int32)
+
+        4. sequence of null-terminated attribute name strings,
+           attributename0 \0 attributename1 \0 ...
+
+        5. possibly some pad bytes, enough to reach the specified first-
+           particle file offset
+
+        6. sequence of particle records, each (number-of-attributes +
+           4)*4 bytes long:
+
+           a. particle-id (int32)
+
+           b. particle X, Y, Z (3 float32's)
+
+           c. particle attributes (number-of-attributes float32's)
+
+           ending at the end of the file (i.e. there's no particle-count
+           field).
+
+        Either big- or little-endian formats are accepted; the value of
+        the magic number determines endianness of all values in that
+        file.
+
+
+     [1mbox[es] [4m[22m....[0m
+        Draw a box, using any of the following formats:
+
+
+         xmin ymin zmin  xmax ymax zmax
+
+         xmin,xmax ymin,ymax zmin,zmax
+
+         xcen,ycen,zcen xrad,yrad,zrad
+
+         [-t time] [-n boxno] [-l level] xcen,ycen,zcen  xrad,yrad,zrad
+
+        level determines color.
+
+
+     mesh [-t [4mtxno[24m] [-c [4mcolorindex[24m] [-s [4mstyle[24m]
+        Draw a quadrilateral mesh, optionally colored or textured.
+        Following the [1mmesh [22mline, provide a line with the mesh
+        dimensions: nu nv
+
+        Following this comes the list of [4mnu[24m*[4mnv[24m mesh vertices, one vertex
+        (specified by several blank-separated numbers) per line.  (Blank
+        lines and comments may be interspersed among them.)  Note that
+        the mesh connections are implicit: vertex number i*nu+j is
+        adjacent to (i-1)*nu+j, (i+1)*nu+j, i*nu+(j-1), and i*nu+(j+1).
+        Each vertex line has three or five numbers: the first three give
+        its 3-D position, and if a -t texture was specified, then two
+        more fields give its u and v texture coordinates.
+
+
+        Options:
+
+         -t [4mtxno[0m
+           Apply texture number [4mtxno[24m to surface.  In this case, each
+           mesh vertex should also include u and v texture coordinates.
+
+         -c [4mcolorindex[0m
+           Color surface with color from integer cmap entry [4mcolorindex[24m.
+
+         -s [4mstyle[0m
+           Drawing style:
+
+            [4msolid[0m
+              filled polygonal surface (default)
+
+            [4mwire[0m
+              just edges
+
+
+            [4mpoint[0m
+              just points (one per mesh vertex)
+
+
+     [4mXcen[24m [4mYcen[24m [4mZcen[24m ellipsoid [4m[options]...[24m [4m[transformation][0m
+        Draw an ellipsoid, specified by:
+
+         Xcen Ycen Zcen
+           Center position in world coordinates
+
+         -c [4mcolorindex[0m
+           Integer color index (default -1 => white)
+
+         -s [4mstyle[0m
+           Drawing style:
+
+            [4msolid[0m
+              filled polygonal surface (default)
+
+            [4mplane[0m
+              3 ellipses: XY, XZ, YZ planes
+
+            [4mwire[0m
+              latitude/longitude ellipses
+
+            [4mpoint[0m
+              point cloud: one per lat/lon intersection
+
+         -r [4mXradius[24m[,[4mYradius[24m,[4mZradius[24m]
+           Radius (for sphere) or semimajor axes (for ellipsoid)
+
+         -n [4mnlat[,nlon][0m
+           Number of latitude and longitude divisions.  Relevant even
+           for [4mplane[24m style, where they determine how finely the
+           polygonal curves approximate circles.  Default [4mnlon[24m = [4mnlat[24m/2
+           + 1.
+
+         [4mtransformation[0m
+           Sets the spatial orientation of the ellipsoid.  May take any
+           of three forms:
+
+            [1m(nothing)[0m
+              If absent, the ellipsoid's coordinate axes are the same as
+              the world axes for the group it belongs to.
+
+            [1m9 blank-separated numbers[0m
+              A 3x3 transformation matrix T from ellipsoid coordinates
+              to world coordinates, in the sense Pworld = Pellipsoid * T
+              +  [Xcen, Ycen, Zcen].
+
+            [1m16 blank-separated numbers[0m
+              A 4x4 transformation matrix, as above but for the obvious
+              changes.
+
+
+     [1mwaveobj [-time [4m[22mtimestep[24m] [-static] [-texture [4mnumber[24m] [-c [4mcol-[0m
+        [4morindex[24m] [-s [4mstyle[24m]  [4mfile.obj[0m
+        Load a Wavefront-style .obj model.  Material properties are
+        ignored; the surface is drawn in white unless -c [4mcolorindex[24m in
+        which case it's drawn using that color-table color.  Also if
+        -texture (alias -tx) is supplied, the surface is textured using
+        whatever texture coordinates are supplied in the .obj file.  The
+        model is displayed at all times only if marked -static;
+        otherwise it's displayed only at the time given by -time
+        [4mtimestep[24m or by the most recent [4mdatatime[24m.
+
+        A subset of the .obj format is accepted:
+
+        [1mv [4m[22mX[24m [4mY[24m [4mZ[0m
+           -- vertex position
+
+        [1mvt [4m[22mU[24m [4mV[0m
+           -- vertex texture coordinates
+
+        [1mvn [4m[22mNX[24m [4mNY[24m [4mNZ[0m
+           -- vertex normal
+
+        [1mf [4m[22mV1[24m [4mV2[24m [4mV3[24m [4m...[0m
+           -- face, listing just position indices for each vertex.  The
+           first v line in the .obj file has index 1, etc.
+
+        [1mf [4m[22mV1/T1[24m [4mV2/T2[24m [4mV3/T3[24m [4m...[0m
+           -- face, listing position and texture coordinates for each
+           vertex of the face.
+
+        [1mf [4m[22mV1/T1/N1[24m [4mV2/T2/N2[24m [4mV3/T3/N3[24m [4m...[0m
+           -- face, listing position, texture-coordinate, and normal
+           indices for each vertex.
+
+        Note that material properties (mtl) are ignored.  Waveobj models
+        are colored according to the -c [4mcolorindex[24m option (integer index
+        into the current cmap colormap), or white if no -c is used.  If
+        texturing is enabled -- if the .obj model contains vt entries,
+        and the -texture option appears, and that numbered texture
+        exists -- then the given texture color multiplies or replaces
+        the -c color, according to the texture options.
+
+
+
+     [1mtfm [camera] [4m[22mnumbers...[0m
+        Object-to-world transformation.  May take 1, 6, 7, 9 or 16
+        numbers: either [4mscalefactor[24m or [4mtx[24m [4mty[24m [4mtz[24m [4mrx[24m [4mry[24m [4mrz[0m
+        [it/scalefactor/] or 16 numbers for 4x4 matrix, or 9 numbers for
+        3x3 matrix.  See [4mCoordinates[24m [4mand[24m [4mCoordinate[24m [4mTransformations[24m.
+
+        Normally the transform is to world coordinates; but with
+        optional camera prefix, the object's position is specified
+        relative to the camera, useful to place legends in a fixed
+        position on the screen.  In camera coordinates, (0,0,0) is the
+        viewpoint, x=y=0 at screen center, and negative z extends
+        forward.  Try for example
+
+            tfm camera -3 -3 -20  0 0 0
+            0 0 0 text -size 20  Legend
+
+
+
+     [1meval [4m[22mcommand[0m
+        execute a Control Command.
+
+
+     [1mfeed  [4m[22mcommand[0m
+        Synonym for eval.
+
+
+     [1mVIRDIR  [4m[22mcommand[0m
+        Synonym for eval.
+
+
+
+     [1mfilepath [4m[22mpath[0m
+        A colon-separated list of directories in which datafiles, color
+        maps, etc.  will be searched for. If preceded with the + symbol,
+        this list will be appended to the current [4mfilepath[24m.
+
+
+     [1mpolyorivar [4m[22mindexno[0m
+        By default, when polygons are drawn, they're parallel to the
+        screen plane -- simple markers for the points.  It's sometimes
+        useful to give each polygon a fixed 3-D orientation (as for disk
+        galaxies).  To do this, provide 6 consecutive data fields,
+        representing two 3-D orthogonal unit vectors which span the
+        plane of the disk.  Then use polyorivar [4mindexno[24m giving the data
+        field number of the first of the 6 fields.  The vectors define
+        the X and Y directions on the disk, respectively -- relevant if
+        texturing is enabled.
+
+        Actually, unit vectors aren't essential; making them different
+        lengths yields non-circular polygonal disks.
+
+        If polyorivar is specified for the group, but some polygons
+        should still lie in the screen plane, use values 9 9 9 9 9 9 for
+        those polygons.
+
+
+     [1mtexture [-aiAOlmnMDB] [4m[22mtxno[24m [4mfile.sgi[0m
+
+         [1m-a(lpha)[0m
+           A single-channel image would normally be used as luminance
+           data.  With -a, the image is taken as opacity data instead
+           (GL_ALPHA texture format).
+
+         [1m-i(ntensity)[0m
+           For 1- or 3-channel images, compute the intensity of each
+           pixel and use it to form an alpha (opacity) channel.
+
+         [1m-A(dd)[0m
+           Use additive blending.  This texture will add to, not
+           obscure, the brightness of whatever lies behind it (i.e.
+           whatever is drawn later).
+
+         [1m-O(ver)[0m
+           Use "over" compositing.  This texture will obscure features
+           lying behind it according to alpha values at each point.
+
+
+
+         [1m-M(odulate)[0m
+           Multiply texture brightness/color values by the colormap-
+           determined color of each particle.
+
+         [1m-D(ecal)[0m
+           The textured polygon's color is determined entirely by the
+           texture, suppressing any colormapped color.
+
+         [1m-B(lend)[0m
+           Probably not very useful.
+
+
+     [1mtexturevar [4m[22mfield[0m
+        If polygon-drawing and texturing are turned on, use the given
+        [4mfield[24m (datavar name or number) in each particle to select which
+        texture (if any) to draw on its polygon.
+
+
+
+     [1mcoord [4m[22mname[24m [4m...[24m [4m16[24m [4mworld-to-coord[24m [4mtfm[24m [4mfloats[24m [4m(GL[24m [4morder)[0m
+
+     [1mdataset [4m[22mindexno[24m [4mdatasetname[0m
+        Give names to multiple datasets in IEEEIO files (read with ieee
+        command).  [4mindexno[24m is an integer, 0 being the first dataset.
+
+
+     [1mdatavar [4m[22mindexno[24m [4mname[24m [4m[minval[24m [4mmaxval][0m
+        Name the variable in data field [4mindexno[24m.  The first data field
+        has [4mindexno[24m 0.  If provided, [4mminval[24m [4mmaxval[24m supply the nominal
+        range of that data variable; some control commands (lum, color)
+        need to know the range of data values, and will use this instead
+        of measuring the actual range.
+
+
+     [1mdatatime [4m[22mtime[0m
+        Label subsequent data with this [4mtime[24m (a non-negative integer).
+
+
+     [4mXpos[24m [4mYpos[24m [4mZpos[24m [4mVar0[24m [4m....[0m
+        These lines, with XYZ positions in the first 3 columns, will
+        make up the bulk of a typical dataset. The 4th and subsequent
+        columns contain the values of the datavariables as named with
+        the [1mdatavar [22mcommands. Note that data variable (field) numbers
+        are 0-based.
+
+
+
+  [1m4.9.  Kira/Starlab[0m
+
+
+  To read Kira output, in human-readable or binary [1mtdyn [22mform, use the
+  ``kira [4mkirafilename[24m'' data-command.
+
+
+
+  [1m4.9.1.  Kira particle attributes[0m
+
+  The particles read in have the following attributes:
+
+      [1mid[0m
+        positive integer worldline index for single stars (matching the
+        id in the kira stream).  For non-leaf (center-of-mass) tree
+        nodes, id is a negative integer.
+
+      [1mmass[0m
+        Mass, in solar mass units (see ``kira mscale'' control command).
+
+      [1mnclump[0m
+        Number of stars in this particle's subtree.  1 for isolated
+        stars, 2 for binaries, etc.
+
+      [1mTlog[0m
+        base-10 log of temperature (K)
+
+      [1mLum[0m
+        Luminosity in solar-mass units.  (Note this is linear, not log
+        luminosity.)
+
+      [1mstype[0m
+        Stellar type code (small integer).  The [bracketed] message
+        reported when picking (button-2 or p key) on a star gives the
+        corresponding human-readable stellar type too.
+
+
+      [1mismember[0m
+        Is this star still a member of (bound to) the cluster?
+
+      [1mrootid[0m
+        id of root of subtree.  For single stars, rootid = id.
+
+      [1mtreeaddr[0m
+        bit-encoded location of star in subtree.
+
+      [1mringsize[0m
+        0 for stars.  For nonleaf nodes, this is the semimajor axis or
+        instantaneous separation (according to ``kira sep'').  This
+        field isn't multiplied by the scale factor given in kira sep; it
+        gives the actual distance in kira units.
+
+      [1msqrtmass[0m
+        Square root of mass/Msun.  Might be useful for luminosity
+        scaling.
+
+      [1mmu[0m
+        Mass ratio for center-of-mass nodes.  Zero for stars.
+
+
+
+  [1m4.9.2.  Hertzsprung-Russell diagram[0m
+
+  The H-R diagram can be invoked via the More... menu (upper left) or by
+  the kira hrdiag on control command.  Axes for this plot are log
+  temperature (initial range from 5 to 3) and log luminosity (initial
+  range -4 to 6).  Ranges may be changed with the kira hrdiag range
+  command or with keystrokes.
+
+  Keystroke commands in the H-R window:
+
+      [1mb/B[0m
+        Adjust the (b)rightness (dot size) of the dots plotted for each
+        star.  Small b brightens (enlarges); capital B shrinks.
+
+      [1ma/A[0m
+        Adjust (a)lpha (opacity) of dots plotted for each star.  If many
+        stars coincide in H-R, their brightnesses add.  Thus reducing
+        opacity may help clarify the relative L-T space densities, if
+        there are many stars.
+
+      [1mv/V[0m
+        Zoom out (v) or in (V) by 33%.  The point under the cursor
+        becomes the center of the view.
+
+
+  [1m4.9.3.  kira control commands[0m
+
+  Viewing control options for kira/Starlab formatted data that have been
+  read in with the kira Data Command.  All control commands begin with
+  kira too.
+
+      [1mkira node {on|off|root}[0m
+        Show or hide center-of-mass nodes for multiple stars.  With on,
+        show CM nodes for each level in a binary tree.  With root, show
+        only the top-level CM node for each multiple.
+
+
+      [1mkira ring {on|off|root}[0m
+        Show circles around multiple stars; on and root as above.
+
+
+
+      [1mkira tree {on|off|cross|tick} [[4m[22mtickscale[24m]
+        Show lines connecting pairs of stars at each binary-tree level
+        in a multiple group.  With cross, also show a perpendicular line
+        -- a tick mark -- which crosses at the CM point, and whose
+        length is tickscale (default 0.5) times the true separation of
+        the pair.  With tick, just show the tick-mark with no connecting
+        line.
+
+
+      [1mkira size [sep|semi] [[4m[22mringscalefactor[24m]
+        Determines 3-D size of circles when kira ring on.  With kira
+        size sep, ring diameter is scalefactor * instanteous separation.
+        With kira size semi, ring radius is scalefactor * a (the
+        semimajor axis of the two-body system, or |a| for hyperbolic
+        orbits).  Using semi gives typically more stable-looking rings,
+        though they will pop if they become marginally (un-)bound.
+        Default: kira size semi 1.5.
+
+
+     [1mkira scale [4m[22mringscalefactor[0m
+        Synonym for kira size above.
+
+
+      [1mkira span [4m[22mminpix[24m [4mmaxpix[0m
+        Sets screen-space (pixel) size limits on rings.  They'll never
+        get smaller than radius [4mminpix[24m nor larger than [4mmaxpix[24m,
+        regardless of true 3-D size.  Thus even vanishingly tight
+        binaries can always be visibly marked.  Default: kira span 2 50.
+
+
+      [1mkira track [4m[22mid[24m|on|off
+        As particle [4mid[24m moves through time, move the viewpoint in the
+        same way, so that (if you don't move the view by navigation) the
+        particle remains fixed in apparent position.  kira track off
+        disables tracking, and kira track on re-enables it.  Use the p
+        key or mouse button 2 to pick a particle (or CM node if kira
+        node on) to see its numeric [4mid[24m.  Transient center-of-mass nodes
+        (shown if kira node on) can be tracked while they exist.
+
+
+      [1mkira mscale [4m[22mmassscalefactor[24m[!]
+        Set/check the mass scale factor.  Starlab dynamical mass values
+        are multiplied by this factor for reporting to the user.
+        Normally [4mmassscalefactor[24m should equal the initial cluster mass
+        in solar-mass units.  For some input files, starlab can
+        determine what was specified in the original kira run.  If so,
+        ``kira mscale [4mnumber[24m'' will be ignored unless [4mnumber[24m ends with
+        an exclamation point (!).  So with no !, the user (or .cf
+        script) provides a default value; use ! to override the original
+        mass scale.
+
+
+      [1mkira int [4m[22mseldest[24m [= [4mselsrc[24m]
+        Track interactions between particles.  As the cluster evolves,
+        whenever any star matching selection-expression [4mselsrc[0m
+        encounters (is a member of the same kira tree as) another
+        particle, then the other particle is added to the [4mseldest[24m set.
+        If [4mseldest[24m and [4mselsrc[24m are the same (or if ``= [4mselsrc[24m'' is
+        omitted), then kira int computes the transitive closure of the
+        interaction set.  Otherwise, only stars that encounter members
+        of the initial [4mselsrc[24m set become members of the [4mseldest[24m set.
+        Example:
+
+         [1mclick on some star[0m
+           The clicked-on star(s) become members of the pick set.
+
+         [1msel x = pick[0m
+           Save a copy in the new set named x.
+
+         [1mkira int x[0m
+           Accumulate encounters in the set x.
+
+         [1memph x[0m
+           Increase brightness of members of x.
+
+         [1mkira trail x[0m
+           Extend trails from these set members.
+
+
+
+      [1mkira trail [4m[22mselexpression[24m|off
+        Leave trails behind particles selected by [4mselexpression[24m (see the
+        sel command).  As (dynamical) time passes, for each display
+        update, one sample point is added to the trail for each selected
+        particle.  (If you reverse the direction of time, the trails
+        will fold back on themselves.)  Some examples:
+
+         [1mkira trail all[0m
+           Makes trails grow behind all particles (including CM nodes,
+           if they're displayed)
+
+         [1mkira trail pick[0m
+           Clicking on a star will make a trail grow behind it.  If
+           several stars are within picking range (under the cursor),
+           trails will grow behind each of them.
+
+         [1mthresh -s big  mass > 1.5[0m
+           threshold when masses are larger than 1.5
+
+         [1mkira trail big[0m
+           These two commands (a) select all stars exceeding 1.5 solar
+           masses and (b) extend trails behind them.
+
+
+      [1mkira trail clear[0m
+        Erase current trails, but let them continue to accumulate as
+        time passes.
+
+
+      [1mkira maxtrail [4m[22mnsamples[0m
+        Set how many time-points are kept for each particle's trail,
+        initially 50.
+
+
+      [1mkira hrdiag on|off[0m
+        toggle to turn HD Diagram on or off. Initially off.
+
+      [1mkira hrdiag range [4m[22mlogTleft[24m [4mlogTright[24m [4mlogLbottom[24m [4mlogLtop[0m
+        set limits on the HD Diagram axes.
+
+
+
+  [1m4.10.  Textures[0m
+
+  To make polygons be textured:
+
+  +o  Use a series of texture data-commands to provide a table of
+     textures, each named by a small integer [4mtexture-index[24m;
+
+  +o  Create a data field in each particle whose value is the [4mtexture-[0m
+     [4mindex[24m for that particle's polygon
+  +o  Use data-command texturevar [4mfieldno[24m to specify which data field
+     that is.
+
+  +o  Use control commands (poly, polylumvar, polysize) to enable drawing
+     polygons and textures, and to give the polygons nonzero size.
+
+  +o  Possibly use control command polysides to specify 4-sided polygons
+     -- a bit faster to draw than default 11-gons.
+
+     It doesn't matter whether the texture-index data field is given a
+     datavar name.
+
+  For each particle, if the value of its [4mtexturevar[24m'th field either (a)
+  doesn't match the value in some texture command or (b) the file named
+  in that texture command couldn't be read, then its polygon is drawn as
+  if texturing were disabled.
+
+
+  [1m4.11.  Coordinates and Coordinate Transformations[0m
+
+  Matrices as for the [1mtfm [22mcommand are intended to be multiplied by an
+  object-coordinate row vector on the left, so that 4x4 matrices specify
+  a translation in their 13th through 15th entries.  Generally they're
+  in the sense of an object-or-camera-to-world transform.
+
+  The six- or seven-number transforms ([4mtx[24m [4mty[24m [4mtz[24m [4mrx[24m [4mry[24m [4mrz[0m
+  [it/scalefactor/], as accepted by the [1mtfm [22mand [1mjump [22mcommands) are
+  interpreted as
+
+  [4mPworld[24m [4m=[24m [4mPobject[24m [4m*[24m [4mscalefactor[24m [4m*[24m rotY([4mry[24m) * rotX([4mrx[24m) * rotZ([4mrz[24m) *
+  translate([4mtx,ty,tz[24m)
+
+
+  [1m4.12.  Colormap Files[0m
+
+  Colormap files, as read by the cmap and vcmap commands, are line-
+  oriented text files.  Blank lines are ignored, as are # comments.  The
+  first nonblank, non-comment line gives the colormap [4msize[24m (number of
+  entries).  Later lines may have the form
+
+    <it/R G B/
+
+
+  giving red, green, and blue, each in the range 0 .. 1.  Typically
+  there will be [4msize[24m of these lines.  However the colormap need not be
+  written sequentially; a line like
+
+    <it/colorindex/:  <it/R G B/
+
+
+  places that RGB value at that [4mcolorindex[24m, in the range 0 .. [4msize[24m-1.
+  Later [4mR[24m [4mG[24m [4mB[24m lines are assigned to [4mcolorindex+1[24m, [4mcolorindex+2[24m and so
+  on.  Also,
+
+    <it/colorindex/ := <it/oldcolorindex/
+
+
+  copies the (previously-assigned) RGB value from [4moldcolorindex[24m and
+  assigns it to [4mcolorindex[24m.
+
+
+  [1m5.  Viewing Window Keyboard Shortcuts[0m
+
+
+  Commands that you can give from within the viewing window are all
+  single keystroke commands, often combined with moving the mouse.
+       TAB             change focus to command window for Control Commands
+       S/s             toggle STEREO mode (need blue/red glasses :-)
+                       modes:  mono redcyan crosseyed glasses
+                       See also the 'stereo' View Command
+       >               single frame forward stepping, in time animation mode
+       <               single frame backward stepping, in time animation mode
+
+       Button-N            various translation/rotation/zoom, depending on mode (fly/orbit/rot/tran)
+
+       SHIFT + Button-N    modifier to the usual Button-N action, to have more fine control
+
+       CTRL + Button-N     modifier to orbit-mode, e.g. to do translations instead of rotations
+
+       playmodes:
+               s       playnow
+               l       loop (rock)
+               f,e     playevery=1
+               r,t     playevery=0
+
+       Gview.cpp : Fl_Gview::handle()
+               cw      reset camera position
+               p       identify nearest object under mouse cursor
+               P       pick that object as the new origin
+               o       ORBIT mode
+               f       FLY mode
+               r       ROTATE mode
+               t       TRANSLATE mode
+               O       toggle perspective mode
+               v       make field of view larger
+               V       make field of view smaller
+               ^v      toggle debug output
+               @       report viewpoint position
+               =       show object-to-world, world-to-object 4x4 matrices
+                         (precede by object name, e.g. "c=", "g3=")
+               ESC     exit
+
+               PrintScreen  Take image snapshot of current view
+               <  >    Step backwards/forwards in dynamical time
+                          (numeric prefix sets time step)
+               {  }    Animate backwards/forwards in dynamical time
+               ~       Fermionic dynamical-time animation toggle:
+                          cycle between stop/forward/stop/backward/...
+               z  Z    Halve/double animation speed (dyn units/sec)
+                          (numeric prefix sets animation speed)
+
+
+
+  [1m6.  Partiview and NEMO[0m
+
+  The program snapspecks  converts a NEMO snapshot to specks format that
+  can be read in directly by partiview. The default viewing variables
+  are x,y,z,m, but you can add and changed them by using the [1moptions=[0m
+  keyword.  In fact, arbitrary [4mbodytrans[24m expressions can be used for
+  output.  In the following example a 32-body Plummer sphere is created,
+  which is then given a power-law mass spectrum (with slope -2) between
+  0.5 and 10 mass units, and animated:
+
+
+
+  ______________________________________________________________________
+    % mkplummer - 32 |\
+          snapmass - - massname='n(m)' masspars=p,-2 massrange=0.5,10 |\
+          hackcode1 - run1.dat
+    % snapspecks run1.dat > run1.tab
+    % partiview run1.cf
+    % cat run1.cf
+
+    read run1.tab
+    eval labels off
+    eval lum lum 0 1
+    eval polylumvar point-size .1 area
+    texturevar 4
+    eval psize 5000
+    eval slum 5
+    eval every 1
+
+  ______________________________________________________________________
+
+
+
+  [1m7.  Tips[0m
+
+
+  During animation the trip/back buttons can effectively be used to
+  return to a point in time where you want to return back to if you
+  wanted to browse around some specific point in time.
+
+  You can spend most of the time moving in [o]rbit mode.  Left-button
+  moves around chosen center; control-left pans around the sky.  As
+  opposed to switching to 't' mode to zoom and translate, you can also
+  use SHIFT-Mouse-1 and SHIFT-Mouse-3 to achieve the same from the other
+  ('o', 'f') modes.
+
+  To make an animation, create an executable shell script movie1 with
+  for example the following commands:
+
+
+       ______________________________________________________________________
+         #! /bin/csh -f
+         #
+         echo step 0
+         echo update
+         echo snapshot
+         echo step 0.01
+         echo update
+         echo snapshot
+         echo step 0.02
+         echo update
+         echo snapshot
+         echo step 0.03
+         echo update
+         echo snapshot
+         ...
+       ______________________________________________________________________
+
+
+
+  the Control Command async movie1, and it will create files
+  snap.000.sgi, snap.001.sgi, .... and already with xv a movie can be
+  shown:
+
+  ______________________________________________________________________
+    xv -wait 0 snap.???.sgi
+  ______________________________________________________________________
+
+
+
+  To make animated GIFs, here are some examples with common software,
+  all with a default 0.1 sec delay between frames. Some animation
+  software (e.g. xanim) can change these:
+
+
+       ______________________________________________________________________
+         convert -delay 10 -loop 0 snap.???.sgi try1.gif
+         gifsicle -d 10 snap.???.gif > try2.gif
+       ______________________________________________________________________
+
+
+
+  The script will run asynchronously within partiview, so if you then
+  use the mouse to change orientation or zoom, these actions (minus the
+  location of the mouse of course) will be nicely recorded in the
+  snapshots.
+
+
+  [1m8.  Bugs, Features and Limitations[0m
+
+
+  Here is a list of known peculiarities, some of them bugs, others just
+  features and others limitations, and there is always that class of
+  things I simply have not understood how it works.
+
+
+  [1m8.1.  Limitations w.r.t. VirDir:[0m
+
+
+
+  1. cannot set an auto-motion, as we can in the dome, although one
+     could of course load a path and move through the dataset :-) I was
+     able to make a path (*.wf) file and load that though.  Now mostly
+     solved via the Inertia toggle under the More button from the Top
+     Row Window.
+
+
+  [1m8.2.  Some notes for newcomers to VirDir[0m
+
+  Although starting virdir is very similar to partiview,
+
+  ______________________________________________________________________
+     % parti gal2.cf
+  or,
+     % virir gal2.cf
+  ______________________________________________________________________
+
+
+  the seasoned partiview user will need  to relearn a few modes to get
+  used to virdir. In particular, at AMNH starting virdir will probably
+  cause your console screen  (which is normally panel#1 on the dome) to
+  go dark with no visible command prompt. To regain control, type the
+  commands (blindly)
+
+
+
+  ______________________________________________________________________
+
+     raise
+     fly
+     idle
+  ______________________________________________________________________
+
+
+
+  which will put virdir in fly and animation mode.
+
+  Here are some important modes, make sure you keep the mouse in the
+  console window.  It is easy to get it lost in any of the other 6
+  displays which are only visible on the dome.
+
+  1. Pushing the Left and Right mouse buttons simultaneously will send
+     the display to the HOME position.
+
+  2. Left mouse button will toggle the Pause mode in animate/fly mode.
+
+  3. Holding the Ctrl-button down while moving the mouse will bring your
+     point of interest into view
+
+  4. Holding the Alt-button down while moving the mouse will rotate
+     around your point of interest.
+
+  5. The 'p' key
+
+  6. The middle mouse button toggles Head display vs. Center display.
+
+  7. Holding the Shift-button down while moving the mouse will change
+     the available screen-space (works like a zoom).
+
+
+
+  [1m9.  Glossary[0m
+
+
+
+  1. group: particles can be grouped with the object command. If
+     multiple groups exist, a separate Group row will be activated
+     automatically.
+
+  2. data command, not to be confused with control command
+
+  3. control command, not to be confused with data command
+
+  4.
+
+
+

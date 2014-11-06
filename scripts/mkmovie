@@ -1,0 +1,167 @@
+#! /bin/csh -f
+#
+#  Automated script to produce a time animation.
+#  Included steps (from PJT original instructions): 
+#   	$ xxx.csh > xxx.sh	# create async script for partiview
+#	$ chmod +x xxx.sh
+#	$ xxx.cf		# run partiview
+#	Cmd: async xxx.sh
+#	... (recording window, do not mess with screen or overlay
+#			other windows here)
+#	<ESC> to quit partiview when all snapshots have been recorded
+#	$ gifsicle -d 10 --colors 256 snap*gif > xxx.gif
+#
+#	See http://bima.astro.umd.edu/nemo/amnh/movies/ for the results
+#
+# Note: You need partiview, and ImageMagic, at least to complete it
+#       the way the example was written.
+#
+# This script uses the existing kira output datafile xxx.out and
+# configuration file xxx.cf (which we assume references xxx.out, hence
+# the symlink).  The user can create the file xxx.mov which defines
+# the initial time, timestep, and number of frames of the movie.
+# Format:
+#
+#		set t  = 0.0
+#		set dt = 0.05
+#		set n  = 401
+#
+# These may be overridden (or replaced) by command-line arguments 2--4.
+#
+# If extra .cf commands are needed to modify the original configuration
+# file for use in the movie format, place them in the file xxx.cf+.
+#
+# Also, we use the file winsize_movie.cf to define the size of our
+# movie frames (may be different from the interactive display size).
+# Format:
+#
+#		eval winsize 400x400
+#
+# The present version creates a temporary work subdirectory, and cleans
+# up after itself.
+#
+# History:    
+#	17-oct-2001	Added to CVS 				Peter Teuben
+#	18-oct-2001	Automated				Steve McMillan
+
+#set echo
+
+if ($#argv < 1) then
+    echo "Usage:  $0 run-id [initial-time [delta-time [nframes]]]"
+    exit
+endif
+
+set mov = $1.mov				# init file for this cf
+set cf  = $1.cf					# cf file to use
+set out = $1.out				# kira data file
+
+set gif = $1.gif				# name of movie file
+
+# Check that all necessary files exist.
+
+foreach file ($cf $out)
+    if (! -e $file) then
+    	echo "Can't find $file"
+	exit
+    endif
+end
+
+# Create and cd into a temporary work directory.
+
+set dirid = __mkmovie
+set dir = {$dirid}$$
+mkdir $dir
+cd $dir
+
+# Initialize the movie loop counters.
+
+set mov = 0
+if (-e ../$mov) then
+    source ../$mov
+    set mov = 1
+endif
+
+if ($mov == 0 && $#argv < 4) then
+    echo "No .mov file.  Must specify 3 movie parameters on the command line."
+    exit
+endif
+
+if ($#argv > 1) set t = $2
+if ($#argv > 2) set dt = $3
+if ($#argv > 3) set n = $4
+
+# Create the async script for partiview.
+
+set scr = $1.sh
+
+if (-e $scr) then
+    rm -f $scr
+endif
+touch $scr
+
+while ($n > 0)
+   @ n--
+   echo "echo step $t"				>> $scr
+   echo "echo update"				>> $scr
+   echo "echo snapset snap%03d.gif"		>> $scr
+   echo "echo snapshot"				>> $scr
+   set t=`echo $t+$dt|bc -l`
+end
+echo "echo exit"				>> $scr
+
+chmod a+x $scr
+ln -s ../$out
+
+# Create a modified .cf file.
+
+cp ../$cf .
+echo "eval async $scr"				>> $cf
+
+# Check for extra commands to add/modify the standard configuration file.
+
+if (-e ../$1.cf+) then
+    cat ../$1.cf+				>> $cf
+endif
+
+# Bring in some explicitly named files...
+
+if (-e ../winsize_movie.cf) then
+    cp ../winsize_movie.cf ./winsize.cf		# name is used in the .cf file
+endif
+
+if (-e ../std_binary.cf) then
+    cp ../std_binary.cf .
+endif
+
+echo " " >! run.sh				# in case of autostart in .cf
+
+cp ../*.cmap . >& /dev/null
+
+# Clean up any old snapshots.
+
+rm -f snap*gif >& /dev/null
+
+# Run partiview to create the individual frames.
+
+$cf
+
+# Combine the frames into a movie.
+
+gifsicle -d 10 --colors 256 snap*gif >! $gif
+if (-e ../$gif) then
+    mv ../$gif ../$gif.save
+endif
+
+# Print statistics on the uncombined/uncompressed total size.
+
+set size = `du -k -c snap*gif | grep total | awk '{print $1}'`
+echo Total size of all partiview frames = $size kbytes
+
+# Clean up and exit.
+
+mv $gif ..
+
+cd ..
+rm -rf $dir
+
+echo Movie file is $gif

@@ -1,0 +1,101 @@
+#! /usr/bin/perl
+
+($me = $0) =~ s'.*/'';
+
+$res = "";
+$fovy = "";
+$asp = "";
+
+sub scanopts {
+  while(1) {
+    if($ARGV[0] =~ /^-n/) {
+	$nowait = shift(@ARGV);
+
+    } elsif($ARGV[0] =~ /^-res/) {
+	shift(@ARGV);
+	$res = shift(@ARGV) . " " . shift(@ARGV);
+
+    } elsif($ARGV[0] =~ /^-fov/) {
+	shift(@ARGV);
+	$fovy = shift(@ARGV);
+
+    } elsif($ARGV[0] =~ /^-asp/) {
+	shift(@ARGV), shift(@ARGV);
+
+    } elsif($ARGV[0] =~ /^-subcam/) {
+	shift(@ARGV);
+	@subcams = grep($_ ne "", split(/[\s,]/, shift(@ARGV)));
+
+    } else {
+	return;
+    }
+  }
+}
+
+&scanopts();
+
+unless(@ARGV >= 3 && ($ARGV[1].$ARGV[2]) =~ /^\d+$/ && $ARGV[2] >= $ARGV[1]) {
+    print STDERR "Usage: $me  stemname  startframe endframe [framestep]  [-res XSIZE YSIZE] [-fovy FOVY]
+Command partiview to take snapshots along currently-loaded (rdata) path.
+Output images are named stemname.NNNN.sgi unless stemname includes % sign,
+in which case it's taken as a printf format string (including suffix).
+Use as e.g., in partiview command box,
+     async $me  wow  500 600 5
+or   async $me  wow.%04d.tif  1 100
+";
+    exit(1);
+}
+
+$stem = shift(@ARGV);
+$min = shift(@ARGV);
+$max = shift(@ARGV);
+
+$step = ($ARGV[0] =~ /^\d+$/) ? shift(@ARGV) : 1;
+
+$min = 1 if $min <= 0;
+
+&scanopts();
+
+$stem = "$stem.%04d.sgi" unless $stem =~ /%/;
+$stem =~ s/\%/\@.\%/ if @subcams && $stem !~ /\@/;
+
+$| = 1;
+
+print "{\nwinsize $res\n}\n" if $res;
+
+$set_fovy = "fovy $fovy" if $fovy;
+
+@subcams = ("") unless(@subcams);
+
+while(@subcams) {
+    $subcam = shift(@subcams);
+
+    if($subcam ne "") {
+	$set_subcam = "subcam $subcam\n";
+    }
+    ($scstem = $stem) =~ s/\@/$subcam/g;
+
+    for($frame = $min; $frame <= $max; $frame += $step) {
+  
+	print STDERR "=> snapshot -n $frame  $scstem => '", sprintf($scstem,$frame), "'\n";
+	print <<EOF;
+{ $set_subcam
+  frame $frame
+  $set_fovy 
+  snapshot -n $frame  $scstem
+}
+EOF
+	$set_subcam = "";
+	unless($nowait) {
+	    $waitcount = 0;
+	    while(! -f sprintf($scstem, $frame)) {
+		if($waitcount++ == 50) {
+		    printf STDERR "Got tired of waiting for $scstem to appear -- giving up!\n", $frame;
+		    exit(1);
+		}
+		select(undef, undef, undef, .333);	# Wait 1/3rd second.
+	    }
+	    printf STDERR "=> Found $scstem\n", $frame;
+	}
+    }
+}

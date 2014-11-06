@@ -1,0 +1,11 @@
+#! partiview
+filepath +:../hipcat
+read p128.tab
+eval labels off
+#eval cmap colorbv.cmap
+eval lum lum 0 1
+eval polylumvar point-size .1 area
+texturevar 4
+eval psize 5000
+eval slum 5
+eval every 1

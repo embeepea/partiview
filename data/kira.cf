@@ -1,0 +1,84 @@
+#! /usr/bin/env partiview
+
+filepath +:.:../data
+
+# The above trick searches for "partiview" on $PATH,
+# making this .cf file be an executable script:
+# invoke with either
+#   partiview  whatever.cf
+# or just
+#   whatever.cf
+
+# These are the data fields filled in by the kira reader as
+# compiled into partiview (kira_parti.cc) as of Dec 30 2000.
+# If the code changes, these datavar definitions should change too.
+# The field names given here are arbitrary, but indices are hard-wired.
+
+# id: >0 positive small integer index for leaf nodes (stars),
+#     <0 negative of small integer index for non-leaves (CM nodes)
+# mass: log10(mass)
+# nclump: number of stars in clump.  1=singles, 2=binaries, ...
+# topnode: small int index, equal for all stars/CM nodes in clump.
+#	  topnode == abs(id) for root node of a clump.
+# treeaddr: bit-encoded, giving location in a clump tree.
+#	  0 for single stars (nclump=1).  Otherwise,
+#	  1 for root of a clump
+#	  2*(parent treeaddr) for left-child of parent
+#	  2*(parent treeaddr)+1 for right-child of parent
+# ringsize: zero for stars, nonzero world-unit radius for (some) CM nodes
+# mu:     mass ratio (m1 / (m1+m2)) for nonleaves
+# sepvec3: separation vector dx dy dz for nonleaves
+
+## datavar 0 id
+## datavar 1 masslog
+## datavar 2 nclump
+## datavar 3 topnode
+## datavar 4 treeaddr # (0=single, 1=root)
+## datavar 5 ringsize
+## datavar 6 mu
+## datavar 7 sepvec3
+
+
+#  ``scale particle brightness by mass (over range 0 - 10)''
+eval lum lum 0 1
+eval lum mass 0 10
+#  ``brighten them up''  Intrinsic brightness = <lum function> * psize * slum
+eval psize 100
+
+#  use bright-colored colormap, and
+#  color by number-of-stars-in-clump.  colorindex = nclump + (-1)
+#    so e.g. nclump=1 => colorindex=0
+
+eval kira mscale 600	# initial cluster had M = 600 Msun (let's suppose)
+
+eval color Tlog 4.8 3.3
+
+eval vcmap -v nclump nclump.cmap
+eval color nclump exact 8
+
+eval vcmap -v mass  mass.cmap
+eval color mass
+
+eval color mass
+
+eval fovy 40
+
+
+# Turn center-of-mass nodes off,
+# draw ring markers for multiple stars,
+# choose marker radius from abs(semimajor axis) * 1.5
+eval kiractl nodes off
+eval kiractl rings on
+eval kiractl ringsize semimajor
+eval kiractl ringscale 1.5
+eval kiractl tree tick 0.5
+eval kiractl maxtrail 250
+# Could track a particle, with:
+## eval kiractl track 12
+
+#  ``load data for time 0 and report to user how many particles are in it''
+eval every
+eval speed .1
+
+#  ``read kira data from this file''
+## kira whatever.kira

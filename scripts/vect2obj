@@ -1,0 +1,38 @@
+#! /usr/bin/perl
+
+if(-t STDIN && @ARGV == 0) {
+    print STDERR "Usage: $0 [infile.vect] > outfile.obj
+Convert a geomview/OOGL .vect file into a .obj model,
+using 2-vertex \"faces\" to represent single line segments.
+";
+    exit(1);
+}
+
+while(<>) {
+    s/#.*//;
+    next if /^\s*$/;
+    push(@tok, split(' '));
+}
+unless(shift(@tok) eq "VECT") {
+    print STDERR "$ARGV: not a VECT file\n";
+    exit(1);
+}
+
+($nvects, $nverts, $ncolors) = splice(@tok, 0, 3);
+@nv = splice(@tok, 0, $nvects);
+@nc = splice(@tok, 0, $nvects);
+
+
+for($i = 0; $i < $nverts; $i++) {
+    print "v ", join(" ", @tok[$i*3 .. $i*3+2]), "\n";
+}
+
+$vno = 1;
+for($i = 0; $i < $nvects; $i++) {
+    $nvnow = $nv[$i];
+    for($j = 1; $j < $nvnow; $j++) {
+	printf "f %d %d\n", $vno, $vno+1;
+	$vno++;
+    }
+    $vno++;
+}

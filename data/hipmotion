@@ -1,0 +1,45 @@
+#! /usr/bin/env partiview
+
+#
+# $Log: hipmotion,v $
+# Revision 1.1  2004/10/01 17:30:44  slevy
+# Display Hipparcos stars with space velocities,
+# as constructed by hiprv2speck from Hipparcos catalog (1/1239) and
+# General Catalog of Radial Velocities (3/3213).
+#
+#
+
+# Display Hipparcos stars with space velocities,
+# as constructed by hiprv2speck from Hipparcos catalog (1/1239) and
+# General Catalog of Radial Velocities (3/3213).
+
+
+filepath +:partiview/hipcat:partiview/data
+
+read hipbrightv.speck
+
+# 1M years per 100 seconds, i.e. 10000 years/second
+warp -extrap vx   -z 0 -p 100 -seconds
+
+texturevar txno
+texture -M 1 sol8.sgi
+
+eval labels off
+eval cmap colorbv.cmap
+eval lum lum 0 1
+eval color color -.5 2.2
+eval psize 500
+eval slum 5
+eval polylumvar point-size area
+eval polysize .005
+eval polysides 4
+eval alpha .99
+eval fovy 52
+eval fast on
+eval ptsize .05 4
+eval poly on
+
+# initial view (almost) at sun, looking toward UMa
+eval jump 0 0 .001  -15.3492 134.666 117.292
+
+#eval step 0.00

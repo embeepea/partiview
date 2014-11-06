@@ -1,0 +1,114 @@
+#! /usr/bin/perl
+
+if(@ARGV != 4) {
+    print STDERR "Usage:  $0  STEMNAME  FOVY  TILEXSIZExTILEYSIZE  NXxNY
+Records the partiview view as a series of images,
+chopped into NXxNY tiles of TILEXSIZExTILEYSIZE pixels each,
+with overall Y-axis field of view FOVY,
+as a series of images named STEMNAME.XX.YY.ppm
+for 00 <= XX <= NX-1, 00 <= YY <= NY-1.  YY=00 at top.
+
+Sorry you have to specify the angular field of view FOVY,
+which this script can't determine on its own;
+use partiview's \"fovy\" command to discover the current setting.
+
+Also prints to stderr some advice you might use to rejoin the
+tiled pieces into a whole, using pnmcat from the netpbm package.
+";
+    exit(1);
+}
+
+$stemfmt = $ARGV[0];
+if($stemfmt !~ /\%.*\%/) {
+    $stemfmt .= "." unless $stemfmt =~ m'/$';
+    $stemfmt .= "%02d.%02d.ppm";
+}
+
+$fovy = $ARGV[1];
+
+($xpix, $ypix) = ($ARGV[2] =~ m'(\d+)\D*(\d*)$');
+$ypix = $xpix if $ypix eq "";
+
+($xtiles, $ytiles) = ($ARGV[3] =~ m'(\d+)\D*(\d*)$');
+$ytiles = $xtiles if $ytiles eq "";
+
+unless($xpix > 10 && $ypix > 10) {
+    print STDERR "$0: Expected reasonable tile size (XSIZExYSIZE or SIZE in pixels), not $ARGV[2]\n";
+    exit(1);
+}
+
+unless($xtiles > 0 && $ytiles > 0) {
+    print STDERR "$0: Expected reasonable tile count (NXxNY or N), not $ARGV[3]\n";
+    exit(1);
+}
+
+
+sub say {
+    $| = 1;
+
+    print join("\n", @_), "\n";
+}
+
+sub tandeg {
+    my($deg) = @_;
+    my($rad) = $deg / 57.29579;
+    sin($rad) / cos($rad);
+}
+
+sub atandeg {
+    57.29579 * atan2( $_[0], 1 );
+}
+
+&say("eval winsize ${xpix}x${ypix}");
+&say("eval update");
+&say("eval async sleep 1");
+
+# Assuming square pixels, compute tan-half-fov in each direction.
+
+$thfovy = &tandeg( $fovy / 2 );
+$thfovx = (($xpix*$xtiles) / ($ypix*$ytiles)) * $thfovy;
+
+sub xwindow {	# 0 .. xtiles => -$thfovx .. $thfovx
+   my($tileno) = @_;
+   &atandeg( $thfovx * (($tileno/$xtiles)*2 - 1) );
+}
+
+sub ywindow {	# 0 .. xtiles => -$thfovx .. $thfovx
+   my($tileno) = @_;
+   &atandeg( $thfovy * (($tileno/$ytiles)*2 - 1) );
+}
+
+# Loop over tiles
+    
+for($yy = 0; $yy < $ytiles; $yy++) {
+    for($xx = 0; $xx < $xtiles; $xx++) {
+	&say( sprintf("eval subcam tiler  0 90 0  %.5g %.5g  %.5g %.5g",
+		-&xwindow($xx),		  &xwindow($xx+1),
+		-&ywindow($ytiles-$yy-1), &ywindow($ytiles-$yy) ),
+	     "eval update" );
+
+	&say( sprintf("eval snapshot $stemfmt", $xx, $yy),
+	     "eval update" );
+    }
+}
+&say("eval subcam off");
+
+
+($justystem = $stemfmt) =~ s/\%.*/\%02d.ppm/;
+($resultfile = $stemfmt) =~ s/\%.*/all.ppm/;
+
+print STDERR "\n# Now to assemble these, you could use:\n";
+@ytemps = ();
+for($yy = 0; $yy < $ytiles; $yy++) {
+    print STDERR "pnmcat -lr";
+    for($xx = 0; $xx < $xtiles; $xx++) {
+	printf STDERR " $stemfmt", $xx, $yy;
+    }
+    $ytemp = sprintf($justystem, $yy);
+    printf STDERR " > $ytemp\n";
+    push(@ytemps, $ytemp);
+}
+print STDERR join(" ", "pnmcat -tb", @ytemps), " > $resultfile\n";
+print STDERR join(" ", "rm", @ytemps), "\n";
+print STDERR "\n";
+

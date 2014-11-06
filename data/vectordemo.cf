@@ -1,0 +1,16 @@
+#! /usr/bin/env partiview
+
+read vector.speck	# defines a bunch of points, each with a triple of consecutive fields
+vecvar x		# use field "x" (and the two fields following) to define 3-D vector
+
+eval lum const 300	# dot size
+eval color color
+
+eval vecscale 2.0	# Each point's vector is 2 * the {x y z} attributes
+
+eval jump 0 0 10  0 0 0 # nice viewpoint
+
+eval vec arrow   # alternatives:  "vec off" (points are as usual),
+		 #		  "vec on"  (dots with colored line segments),
+		 #		  "vec arrow" (line segments with arrows)
+

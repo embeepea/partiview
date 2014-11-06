@@ -1,0 +1,39 @@
+geometry.o: geometry.c geometry.h config.h
+partibrains.o: partibrains.c config.h geometry.h shmem.h futil.h specks.h \
+  textures.h sclock.h notify.h findfile.h partiviewc.h sfont.h conste.h
+specks.o: specks.c specks.h config.h geometry.h textures.h sclock.h \
+  notify.h shmem.h partiviewc.h
+version.o: version.c
+mgtexture.o: mgtexture.c textures.h geometry.h config.h findfile.h \
+  futil.h shmem.h
+textures.o: textures.c textures.h geometry.h config.h shmem.h findfile.h
+async.o: async.c specks.h config.h geometry.h textures.h sclock.h \
+  notify.h partiviewc.h findfile.h futil.h
+shmem.o: shmem.c shmem.h
+findfile.o: findfile.c shmem.h findfile.h
+sfont.o: sfont.c sfont.h geometry.h config.h
+warp.o: warp.c shmem.h specks.h config.h geometry.h textures.h sclock.h \
+  notify.h partiviewc.h
+plugins.o: plugins.c plugins.h specks.h config.h geometry.h textures.h sclock.h \
+  notify.h partiviewc.h shmem.h
+version.o: version.c
+szgPartiview.o: szgPartiview.cc \
+   config.h \
+  specks.h geometry.h textures.h sclock.h notify.h szgPartiview.h \
+  partiviewc.h shmem.h findfile.h
+szgPartiutil.o: szgPartiutil.cc geometry.h config.h shmem.h specks.h \
+  textures.h sclock.h notify.h partiviewc.h szgPartiview.h \
+  
+nethack.o: nethack.cc plugins.h
+conste.o: conste.cc plugins.h futil.h findfile.h specks.h config.h geometry.h \
+  textures.h sclock.h notify.h partiviewc.h conste.h
+kira_parti.o: kira_parti.cc
+parti_model.o: parti_model.cc plugins.h specks.h config.h geometry.h textures.h \
+  sclock.h notify.h cat_model.h cat_modelutil.h shmem.h findfile.h \
+  partiviewc.h
+cat_model.o: cat_model.cc cat_model.h geometry.h config.h cat_modelutil.h \
+  shmem.h textures.h findfile.h partiviewc.h specks.h sclock.h notify.h \
+  cat_modelutil.cc
+parti_ieee.o: parti_ieee.cc plugins.h
+tcpsocket.o: tcpsocket.cc config.h
+winjunk.o: winjunk.c winjunk.h

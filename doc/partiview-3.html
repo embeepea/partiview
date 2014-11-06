@@ -1,0 +1,408 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
+ <TITLE> Partiview (PC-VirDir): Running the program</TITLE>
+ <LINK HREF="partiview-4.html" REL=next>
+ <LINK HREF="partiview-2.html" REL=previous>
+ <LINK HREF="partiview.html#toc3" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="partiview-4.html">Next</A>
+<A HREF="partiview-2.html">Previous</A>
+<A HREF="partiview.html#toc3">Contents</A>
+<HR>
+<H2><A NAME="s3">3.</A> <A HREF="partiview.html#toc3">Running the program</A></H2>
+
+<P>First we describe a simple example how to run <CODE>partiview</CODE> with a supplied sample
+dataset. Then we describe the different windows that <CODE>partiview</CODE> is made up of, and
+the different commands and keystrokes it listens to.</P>
+
+<H2><A NAME="ss3.1">3.1</A> <A HREF="partiview.html#toc3.1">Example 1: Hipparcos Bright Star Catalogue 3-D viewing</A>
+</H2>
+
+
+<P>Start the program using one of the sample  "speck" files in the
+<CODE>data</CODE> directory:</P>
+<P>
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+       % cd partiview/data
+       % ./hipbright
+or
+       % partiview hipbright
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+</P>
+<P>and this should come up with a display familiar to most of us who
+watch the skies. You should probably enlarge the
+window a bit. Mine comes up in roughly a 300 by 300 display window,
+which may be a bit small (certainly on my screen :-)
+(Hint: the <CODE>.partiviewrc</CODE> file may contain commands like
+<CODE>eval winsize 600 400</CODE>.)</P>
+
+<P>Hit the TAB key to bring focus to the (one line) command window inbetween
+the log screen (top) and viewing screen (bottom). Type the commands</P>
+<P>
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+        fov 50                          (field of view 50 degrees)
+        jump 0 0 0 80 70 60             (put yourself in the origin
+                                        and look at euler angles
+                                        RxRyRz (80,70,60)
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+</P>
+<P>and it should give another nice comfy view :-)  If you ever get lost, 
+and this is not hard, use
+the <CODE>jump</CODE> command to go back to a known position and/or viewing
+angle.</P>
+<P>
+<FIGURE>
+<IMG SRC="pv1.gif">
+<CAPTION>partiview view</CAPTION>
+</FIGURE>
+</P>
+
+<P>Note that spatial units for this dataset are
+parsecs, though angular units are degrees for any data in partiview.</P>
+<P>Now play with the display, use the 't', 'r', 'f' and 'o' keys 
+(keys are case sensitive) in the viewing window and use the
+left and mouse buttons down to (carefully) move around a bit, and make
+yourself comfortable with moving around. Using the 't' button you get
+some idea of the distance of the stars by moving back and forth a little
+(the parallax trick). In fact, if you 't' around a little bit, you may
+see a green line flashing through the display. This is one of the  RGB
+(xyz) axes attached to the (0,0,0) [our sun] position.  You should see
+Procyon and Sirius exhibit pretty large parallaxes, but Orion is pretty
+steady since it is several hundred parsecs away.
+If you move the right mouse button you will zoom in/out and 
+should see our Sun flash by with the red-green-blue axes.</P>
+<P>The RGB axes represent the XYZ axes in a (right-handed)
+cartesian system. For the Hipparcos
+data the X (red) axis points to RA=0h, Y (green) axis to RA=6h, both in the equatorial
+plane, and the Z (blue) axis points to the equatorial north pole.</P>
+<P>Try and use the middle mouse button (or the 'p' key)  to click on Sirius
+or Procyon, and see if you can get it to view its properties.  Now use
+the 'P' key to switch center to rotation to that star. Sirius is
+probably a good choice. Move around a bit, and try and get the sun and orion
+in the same view :-)</P>
+<P>[NOTE: these Hipparcos data do not have reliably distance above
+100-200 pc, so Orion's individual distances are probably uncertain to 30%]</P>
+
+<P>A little bit on the types of motion, and what the mouse buttons do</P>
+<P>
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+
+              |     left            middle          right
+              |     Button-1        Button-2        Button-3         Shift Button-1
+------------------------------------------------------------------------------------
+f (fly)       |     fly             'pick'          zoom
+o (orbit)     |     orbit           'pick'          zoom
+r (rotate)    |     rotate X/Y      'pick'          rotate Z            translate
+t (translate) |     translate       'pick'          zoom
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+</P>
+<P>The point of origin for rotations can be changed with the 'P' button.
+First you can try and pick ('p' or Button-2) a point, and if found,
+hit 'P' to make this point the new rotation center default.</P>
+
+
+<P>
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+red   = X axis
+green = Y axis
+blue  = Z axis
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+</P>
+<P>To choose an arbitrary center of rotation, use the <CODE>center</CODE> command.</P>
+
+<H2><A NAME="ss3.2">3.2</A> <A HREF="partiview.html#toc3.2">Top Row</A>
+</H2>
+
+<P>The top row contains some shortcuts to some frequently used commands.
+From left to right, it should show the following buttons:</P>
+<P>
+<DL>
+
+<DT><B> More </B><DD>
+<P>Offers some mode switches as toggles: <CODE>inertia</CODE>
+for continues spin or motion,
+and an <CODE>H-R Diagram</CODE> to invoke a separate H-R diagram window
+for datasets that support stellar evolution.</P>
+
+<DT><B> [g1] </B><DD>
+<P>Pulldown g1, g2, ... (or whichever group) 
+is the currently selected group. See  <CODE>object</CODE> command
+to make aliases which group is defined to what object. If multiple
+groups are defined, the next row below this contains a list of all
+the groups, and their aliases, so you can toggle them to be displayed.</P>
+
+<DT><B> [f]ly </B><DD>
+<P>Pulldown to select fly/orbit/rot/tran, which can also be activate
+by pressing the f/o/r/t keys inside the viewing window.</P>
+
+<DT><B> point </B><DD>
+<P>Toggle to turn the points on/off. See also the <CODE>points</CODE> command.</P>
+
+<DT><B> poly </B><DD>
+<P>Toggle to turn polygons on/off. See also the <CODE>polygon</CODE> command.</P>
+
+<DT><B> lbl </B><DD>
+<P>Toggle to turn labels on/off. See also the <CODE>label</CODE> command.</P>
+
+<DT><B> tex </B><DD>
+<P>Toggle to turn textures on/off. See also the <CODE>texture</CODE> command.</P>
+
+<DT><B> box </B><DD>
+<P>Toggle to turn boxes on/off. See also the <CODE>boxes</CODE> command.</P>
+
+<DT><B> #.### </B><DD>
+<P>The current displayed value of the <CODE>logslum lum</CODE> slider (see next)</P>
+
+<DT><B> logslum lum </B><DD>
+<P>Slider controlling the logarithm of the <B>datavar</B> variable 
+selected as luminosity (with the <CODE>lum</CODE> command).</P>
+
+</DL>
+</P>
+
+<H2><A NAME="ss3.3">3.3</A> <A HREF="partiview.html#toc3.3">Group row (optional)</A>
+</H2>
+
+<P>When more than one group has been activated (groups of particles or objects 
+can have their own display properties, and be turned on and off at will),
+a new Group Row will appear as the 2nd row.</P>
+<P>Left-clicking (button 1) on a button toggles the display of that group;
+right-clicking (button 3) enables display of the group,
+and also selects it as the current group for GUI controls and
+text commands.</P>
+
+<H2><A NAME="ss3.4">3.4</A> <A HREF="partiview.html#toc3.4">Time Animation rows (Optional)</A>
+</H2>
+
+<P>For time-dependent data, the third and fourth row from
+the top control the currently displayed data-time.
+This time-control bar is only visible when the object
+has a nonzero time range.</P>
+<P>
+<DL>
+
+<DT><B> T </B><DD>
+<P>Shows the current time (or offset from the tripmeter).
+The absolute time is the sum of the <B>T</B> and <B>+</B> fields.
+Both are editable.
+See also the <CODE>step</CODE> control command.</P>
+
+<DT><B>trip </B><DD>
+<P>Press to mark a reference point in time.
+The T field becomes zero, and the + field (below)
+is set to current time.  As time passes, T shows the
+offset from this reference time.</P>
+
+<DT><B>back </B><DD>
+<P>Press to return to reference time (sets T to 0).</P>
+
+<DT><B> + </B><DD>
+<P>Current last time where tripmeter was set. You can reset to
+the first frame with the command <CODE>step 0</CODE></P>
+
+<DT><B> dial </B><DD>
+<P>Drag to adjust the current time.  Sensitivity depends
+on the speed setting; dragging by one dial-width
+corresponds to 0.1 wall-clock second of animation,
+i.e. 0.1 * <I>speed</I> in data time units.</P>
+
+<DT><B> |&lt; </B><DD>
+
+<DT><B> >| </B><DD>
+<P>Step time backwards or forwards by 0.1 * <I>speed</I> data time units.
+See also the <CODE>&lt;</CODE> and <CODE>></CODE> keyboard shortcuts.</P>
+
+<DT><B> &lt;&lt; </B><DD>
+
+
+<DT><B> >> </B><DD>
+<P>toggle movie move forwards in time
+Toggle animating backwards or forwards in time, by 
+1 * <I>speed</I> data time units per real-time second.
+See also the <CODE>{</CODE>, <CODE>~</CODE>, and <CODE>}</CODE> keyboard shortcuts.</P>
+
+<DT><B> #.#### </B><DD>
+<P>(Logarithmic) value denoting <I>speed</I> of animation.
+See also the <CODE>speed</CODE> control command.</P>
+
+
+</DL>
+</P>
+
+
+<H2><A NAME="ss3.5">3.5</A> <A HREF="partiview.html#toc3.5">Camera (path) Animation row</A>
+</H2>
+
+<P>The fifth (or 4th or 3rd, depending if Group and/or Time rows are present)
+row from the top controls loading and playing sequences of moving through space.</P>
+<P>
+<DL>
+
+<DT><B> Path... </B><DD>
+<P>Brings up a filebrowser to load a <B>.wf</B> path file. This is a file with on each
+line 7 numbers: xyz location, RxRyRz viewing direction, and FOV (field of view).
+The <CODE>rdata</CODE> command loads such path files too.</P>
+
+<DT><B> Play </B><DD>
+<P>Play the viewpoint along the currently loaded path,
+as the <CODE>play</CODE> command does.
+Right-click for a menu of play-speed options.</P>
+
+<DT><B> &lt;&lt; &lt; [###] >>> </B><DD>
+<P>Step through camera-path frames.
+See also <CODE>frame</CODE> control command.</P>
+
+<DT><B> slider </B><DD>
+<P>Slides through camera path, and displays current frame.</P>
+
+</DL>
+</P>
+
+<H2><A NAME="ss3.6">3.6</A> <A HREF="partiview.html#toc3.6">Logfile window</A>
+</H2>
+
+<P>The third window from the top contains a logfile of past commands
+and responses to them, and can be resized by dragging the bar between
+command window and viewing window.
+The Logfile window also has a scroll bar on the left. You can
+direct the mouse to any previous command, and it will show up in the
+command window. Using the arrow keys this command can then be edited.</P>
+
+
+<H2><A NAME="ss3.7">3.7</A> <A HREF="partiview.html#toc3.7">Command window</A>
+</H2>
+
+<P>The Command window is a single line entry window, in which Control
+Commands can be given.  Their responses appear in the Logfile
+window and on the originating console. (unlike Data Commands,
+which show no feedback). You can still give Data Commands in
+this window by prefixing them with the <CODE>add</CODE> command.
+The Up- and Down-arrow keys (not those on the keypad) scroll through
+previous commands, and can be edited using the arrow keys and a subset
+of the emacs control characters.</P>
+
+
+<H2><A NAME="ss3.8">3.8</A> <A HREF="partiview.html#toc3.8">Viewing window</A>
+</H2>
+
+<P>The (OpenGL) Viewing window is where all the action occurs.  Typically
+this is where you give single keystroke commands and/or move the mouse
+for an interactive view of the data.  It can be resized two ways:
+either by resizing the master window, or by picking up the separator
+between Viewing window and Command window above.</P>
+
+<H2><A NAME="ss3.9">3.9</A> <A HREF="partiview.html#toc3.9">Example 2: a (starlab) animation</A>
+</H2>
+
+<P>Setting up a small animation in for example Starlab can be done quite simply as follows:
+(see also the primbim16.mk makefile to create a standard one):</P>
+<P>
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+  % makeplummer -i -n 20 | makemass -l 0.5 -u 10.0 | scale -s | kira -d 2 -D x10 > run1
+  % partiview run1.cf
+  % cat run1.cf
+
+  kira run1
+  eval every
+  eval lum mass 0 0.01
+  eval psize 100
+  eval cment 1  1 .7 .3
+  eval color clump exact
+       
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+</P>
+<P>Alternatively, if you had started up partiview without any arguments, the following
+Control Command (see below) would have done the same</P>
+<P>
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+  read run1.cf
+  
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss3.10">3.10</A> <A HREF="partiview.html#toc3.10">Example 3: stereo viewing </A>
+</H2>
+
+<P>The 's' key within the viewing window toggles stereo viewing. By default each
+object is split in a blue and a red part, that should be viewed with a pair
+of red(left)/blue(right) glasses. Red/green glasses will probably work too.
+Crosseyed viewing is also available if selected by <B>stereo cross</B>.
+See <B>stereo</B> and <B>focallen</B> in the View Commands section. </P>
+
+<H2><A NAME="ss3.11">3.11</A> <A HREF="partiview.html#toc3.11">Example 4: subsetting</A>
+</H2>
+
+<P>In the <CODE>data</CODE> directory, run
+<PRE>
+  partiview hip.cf
+</PRE>
+
+One of the data fields for these stars is the <I>B-V</I> color, <CODE>colorb_v</CODE>,
+abbreviatable to just <CODE>color</CODE>.  Look at just the bluest stars: try
+<PRE>
+  thresh color &lt; -.1
+</PRE>
+
+Back off to a large distance (drag with right mouse button,
+and drag the <CODE>logslum lum</CODE> slider to brighten)
+and look at the distribution of these blue stars.  The
+Orion spiral-arm spur, extending generally along the +Y (green)
+axis, has lots of them.  Now look at more reddish stars,
+those with .5 &lt;= <I>B-V</I> &lt;= 1.5, with:
+<PRE>
+  thresh color  .5  1.5
+</PRE>
+
+These are much more uniformly distributed in the galactic plane.
+Return to seeing all stars, with:
+<PRE>
+  see all
+</PRE>
+
+or re-view the threshold-selected subset (reddish stars) with
+<PRE>
+  see thresh
+</PRE>
+
+or its complement with
+<PRE>
+  see -thresh
+</PRE>
+</P>
+
+
+
+
+<HR>
+<A HREF="partiview-4.html">Next</A>
+<A HREF="partiview-2.html">Previous</A>
+<A HREF="partiview.html#toc3">Contents</A>
+</BODY>
+</HTML>

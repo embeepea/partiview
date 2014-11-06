@@ -1,0 +1,39 @@
+#! /usr/bin/perl
+
+foreach $_ (split(/:/, $ENV{'PATH'})) {
+    push(@INC, $_), last if -f "$_/tfm.pl";
+}
+require 'tfm.pl';
+
+
+$fovy  = 71;					# Y-axis field of view (included in .wf file)
+
+$start = $ARGV[0] || "0 0 0   0.703464 -90.24 -29.3133";	# starting "jump" view
+$axis  = $ARGV[1] || "0 0 1";				# rotation axis
+$center = $ARGV[2] || "0 0 0";				# fixed point of rotation
+$angle = 360;					# rotate through this total angle
+$time  = 25;					# seconds duration
+
+$fps = 20;					# ... assuming this many frames/sec
+
+###
+# Now construct a .wf path (loadable with the "Path..." button)
+
+$nframes = $time * $fps;
+$perframe = ($nframes == 0) ? 0 : $angle / $nframes;
+
+@c2w0 = &vd2tfm( split(' ', $start) );		# initial camera-to-world tfm
+@axis = split(' ', $axis);
+@axis = (0,0,1) unless @axis == 3;
+@center = split(' ', $center);
+
+for($i = 0; $i <= $nframes; $i++) {
+    $theta = $i * $perframe;		# angle in degrees
+
+    @Trot = &tfm( @axis, $theta, @center );
+    
+    @c2w = &tmul( @c2w0, @Trot );
+    @vd = &tfm2vd( @c2w );
+
+    printf "%.7g %.7g %.7g  %.7g %.7g %.7g  %s\n", @vd, $fovy;
+}

@@ -1,0 +1,308 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0103 
+header_name {partipanel.H} 
+code_name {partipanel.cc}
+decl {\#include "partiview.H"} {} 
+
+Function {make_window()} {open
+} {
+  Fl_Window {ppui.mainwin} {open
+    xywh {859 556 540 465} type Double box DOWN_BOX color 96 resizable
+    code0 {o->size_range(101,130);} visible
+  } {
+    Fl_Pack {} {open
+      xywh {0 0 540 466} color 96 resizable
+      code0 {o->spacing(0);}
+    } {
+      Fl_Group {ppui.toprow} {open
+        xywh {0 0 540 37}
+      } {
+        Fl_Menu_Button {ppui.more} {
+          label More
+          xywh {0 0 30 20} color 137 selection_color 8 labelsize 12 labelcolor 3 align 2
+        } {
+          menuitem {ppui.inertiaon} {
+            label inertia
+            callback pp_inertia_on_cb
+            xywh {0 0 100 20} type Toggle labelsize 12 labelcolor 3
+            code0 {ppui.inertiaon = o;}
+          }
+          menuitem {ppui.hrdiagon} {
+            label {H-R Diagram}
+            callback pp_hrdiag_on_cb
+            xywh {0 0 100 20} type Toggle labelcolor 3
+            code0 {ppui.hrdiagon = o;}
+          }
+        }
+        Fl_Group {} {
+          xywh {28 0 30 34} box FLAT_BOX color 96
+        } {
+          Fl_Menu_Button {ppui.obj} {
+            label {[gN]}
+            callback pp_obj_cb open
+            xywh {33 0 25 20} color 137 labelsize 12 labelcolor 3 align 2
+          } {}
+        }
+        Fl_Group {} {
+          xywh {58 0 40 34} box FLAT_BOX color 96
+        } {
+          Fl_Menu_Button {ppui.nav} {
+            label {Navi  }
+            user_data {&ppui.st} user_data_type {struct stuff **}
+            callback pp_nav_cb open
+            xywh {63 0 32 20} color 137 labelsize 12 labelcolor 3 align 2 textsize 12
+          } {}
+        }
+        Fl_Group {ppui.objgroup} {
+          xywh {98 0 441 37} resizable
+        } {
+          Fl_Light_Button {ppui.point} {
+            label {point }
+            user_data {&ppui.st} user_data_type {struct stuff **}
+            callback {specks_commandfmt( &ppui.st, "points %d", o->value());}
+            xywh {106 0 20 20} color 35 selection_color 2 labelsize 12 labelcolor 3 align 2 when 1
+          }
+          Fl_Light_Button {ppui.poly} {
+            label poly
+            user_data {&ppui.st} user_data_type {struct stuff **}
+            callback {specks_commandfmt( &ppui.st, "polygons %d",
+  o->value() );}
+            xywh {133 0 20 20} color 35 selection_color 2 labelsize 12 labelcolor 3 align 6 when 1
+          }
+          Fl_Light_Button {ppui.label} {
+            label lbl
+            user_data {&ppui.st} user_data_type {struct stuff **}
+            callback {specks_commandfmt(&ppui.st, "label %d", o->value());}
+            xywh {161 0 20 20} color 35 selection_color 2 labelsize 12 labelcolor 3 align 2 when 1
+          }
+          Fl_Light_Button {ppui.texture} {
+            label tex
+            user_data {&ppui.st} user_data_type {struct stuff **}
+            callback {specks_commandfmt( &ppui.st, "texture %d",o->value());}
+            xywh {188 0 20 20} color 35 selection_color 2 labelsize 12 labelcolor 3 align 6 when 1
+          }
+          Fl_Light_Button {ppui.box} {
+            label box
+            user_data {&ppui.st} user_data_type {struct stuff **}
+            callback {specks_commandfmt( &ppui.st,
+   "boxes %d",
+   Fl::event_state(FL_CTRL)?2: o->value());}
+            xywh {216 0 20 20} color 35 selection_color 2 labelsize 12 labelcolor 3 align 6 when 1
+          }
+          Fl_Menu_Button {} {
+            label Boxes
+            callback {specks_commandfmt(&ppui.st, "%s", o->text());} open
+            xywh {216 0 20 20} type popup3
+            code0 {o->add("boxes off|boxes on|boxes ONLY");}
+          } {}
+          Fl_Button {ppui.homejump} {
+            label home
+            user_data {&ppui.st} user_data_type {struct stuff **}
+            callback {char homestr[120];
+sprintf(homestr, "home %g %g %g  %g %g %g  (XYZ RxRyRz)", ppui.home[0], ppui.home[1], ppui.home[2], ppui.home[3], ppui.home[4], ppui.home[5]);
+specks_commandfmt( &ppui.st, homestr, o->value());}
+            xywh {245 0 20 20} color 35 selection_color 34 labelsize 12 labelcolor 3 align 2
+          }
+          Fl_Group {ppui.slidergroup} {open
+            xywh {270 0 268 35} box FLAT_BOX color 96 when 1 resizable
+            code0 {//steven marx: version 0.7.02}
+          } {
+            Fl_Menu_Button {ppui.sldtype} {
+              label slum
+              callback pp_sldtype_cb open
+              tooltip {menu for choosing type of slider} xywh {275 0 22 20} box DOWN_BOX color 15 selection_color 35 labelsize 12 labelcolor 3 align 6 textsize 12 textcolor 35
+            } {}
+            Fl_Value_Slider {ppui.slum} {
+              label {log slum}
+              user_data {&ppui.st} user_data_type {struct stuff **}
+              callback pp_slum_cb
+              xywh {327 0 211 20} type {Horz Knob} color 35 selection_color 4 labelsize 12 labelcolor 3 minimum -3 maximum 4.5 step 0.025 textcolor 3
+            }
+            Fl_Value_Slider {ppui.genericslider} {
+              label {generic slider}
+              callback pp_genericslider_cb
+              xywh {327 0 211 20} type {Horz Knob} color 35 selection_color 4 labelsize 12 labelcolor 3 when 3 minimum -3 maximum 4.5 step 0.025 textcolor 3 hide resizable
+            }
+            Fl_Button {ppui.linlog} {
+              label log
+              callback pp_linlog_cb
+              xywh {297 0 30 20} down_box DOWN_BOX color 136 selection_color 136 labelsize 12 labelcolor 3 align 16
+              code0 {o->value(0); //initially slum slider is visible}
+              code1 {o->type(FL_TOGGLE_BUTTON);}
+            }
+          }
+        }
+      }
+      Fl_Scroll {} {
+        xywh {0 40 540 29} type HORIZONTAL color 96 hide
+        class Fl_Scroll_Thin
+      } {
+        Fl_Pack {ppui.objtogs} {open
+          xywh {1 40 473 22} type HORIZONTAL color 96
+          code0 {o->spacing(2);}
+        } {
+          Fl_Button {} {
+            label g0
+            callback pp_objtog_cb
+            xywh {6 40 30 18} type Toggle box DOWN_BOX color 38 selection_color 0 labelsize 12 labelcolor 3
+          }
+        }
+      }
+      Fl_Group {ppui.steprow} {
+        xywh {0 70 380 49} color 41
+      } {
+        Fl_Button {ppui.step[0]} {
+          label {@\#|<}
+          user_data {-1}
+          callback pp_step_cb
+          xywh {304 74 19 20} color 32 labelcolor 3
+        }
+        Fl_Button {ppui.step[1]} {
+          label {@\#>|}
+          user_data 1
+          callback pp_step_cb
+          xywh {325 74 19 20} color 32 labelcolor 3
+        }
+        Fl_Input {ppui.timestep} {
+          label T
+          callback pp_timeinput_cb
+          xywh {12 74 108 21} type Float color 32 selection_color 92 labelsize 13 labelcolor 3 textsize 12 textcolor 7
+          code0 {o->cursor_color( o->textcolor() );}
+        }
+        Fl_Roller {ppui.jog} {
+          callback pp_jog_cb
+          xywh {182 75 118 20} type Horizontal color 48 selection_color 8 labelcolor 3 minimum -1e+08 maximum 1e+08 step 0.01
+        }
+        Fl_Button {ppui.settrip} {
+          label trip
+          callback pp_settrip_cb
+          xywh {120 75 27 19} color 0 labelsize 10 labelcolor 3
+        }
+        Fl_Button {ppui.backtrip} {
+          label back
+          callback pp_backtrip_cb
+          xywh {149 75 26 19} color 32 labelsize 11 labelcolor 3
+        }
+        Fl_Input {ppui.timebase} {
+          label {+}
+          callback pp_timebaseinput_cb
+          xywh {12 97 137 21} type Float color 97 labelsize 13 labelcolor 3 when 8 textsize 9 textcolor 52
+          code0 {o->cursor_color( o->textcolor() );}
+        }
+        Fl_Value_Slider {ppui.stepspeed} {
+          callback pp_stepspeed_cb
+          xywh {162 97 137 20} type {Horz Knob} color 32 selection_color 4 labelcolor 3 step 0.0001 textsize 9 textcolor 3
+          class {class Fl_Log_Slider}
+        }
+        Fl_Button {ppui.runstop[0]} {
+          label {@\#<<}
+          user_data {-1}
+          callback pp_run_cb
+          xywh {304 97 20 20} type Toggle color 32 labelsize 12 labelcolor 3
+        }
+        Fl_Button {ppui.runstop[1]} {
+          label {@\#>>}
+          user_data 1
+          callback pp_run_cb
+          xywh {325 97 20 20} type Toggle color 32 labelsize 12 labelcolor 3
+        }
+        Fl_Light_Button {ppui.feed} {
+          label feed
+          callback pp_feed_cb
+          xywh {352 73 20 21} color 96 labelsize 10 labelcolor 3 align 6
+        }
+      }
+      Fl_Group {ppui.animrow} {open
+        xywh {0 121 540 21}
+      } {
+        Fl_Button {ppui.rdata} {
+          label {Path...}
+          user_data {&ppui.st} user_data_type {struct stuff **}
+          callback pp_rdata_cb
+          xywh {0 122 55 20} color 32 labelsize 12 labelcolor 3
+        }
+        Fl_Button {ppui.play} {
+          label Play
+          user_data {&ppui.st} user_data_type {struct stuff **}
+          callback pp_play_cb
+          xywh {57 122 40 20} type Toggle color 32 selection_color 58 labelsize 12 labelcolor 3
+        }
+        Fl_Menu_Button playmenu {
+          label {Play Speed (Nf = every Nth frame)}
+          callback {specks_commandfmt(&ppui.st,"%s",o->text());} open
+          xywh {57 122 40 20} type popup3
+          code0 {o->add("play 1|play .5|play .25|play 2|play 5|play 1f|play 2f|play 5f|play 10f");}
+        } {}
+        Fl_Counter {ppui.playframe} {
+          user_data {&ppui.st} user_data_type {struct stuff **}
+          callback pp_playframe_cb
+          xywh {122 122 80 20} color 32 selection_color 1 labelcolor 3 when 4 minimum 0 maximum 3000 step 1 textsize 11
+        }
+        Fl_Value_Slider {ppui.playtime} {
+          user_data {&ppui.st} user_data_type {struct stuff **}
+          callback pp_playtime_cb
+          xywh {202 122 337 20} type {Horz Knob} color 32 selection_color 4 labelcolor 3 maximum 100 step 0 textcolor 3 resizable
+        }
+        Fl_Button editbtn {
+          label att
+          xywh {97 121 25 20} color 33 selection_color 33 labelsize 12 labelcolor 3
+        }
+      }
+      Fl_Tile {ppui.maintile} {
+        xywh {0 142 540 327} color 139 resizable
+      } {
+        Fl_Group {ppui.cmdhist} {open
+          xywh {0 142 540 75} box DOWN_BOX color 96
+          code0 {\#include "Hist.H"}
+          class Hist
+        } {
+          Fl_Browser {} {
+            xywh {0 142 540 50} type Multi color 0 selection_color 9 labelsize 12 textsize 12 textcolor 3 resizable
+            code0 {o->scrollbar.align( FL_ALIGN_LEFT );}
+            code1 {o->scrollbar_width( 8 );}
+            code2 {o->hist(ppui.cmdhist);}
+            class HistBrowser
+          }
+          Fl_Group {} {open
+            xywh {0 192 540 25}
+          } {
+            Fl_Box {} {
+              label {Cmd:}
+              xywh {0 192 30 25} labelsize 12 labelcolor 3
+            }
+            Fl_Input {ppui.cmd} {
+              callback pp_cmd_cb
+              xywh {30 192 510 25} color 38 selection_color 9 labelfont 1 labelsize 10 labelcolor 3 when 10 textcolor 55 resizable
+              code0 {o->cursor_color( o->textcolor() );}
+              code1 {o->hist( ppui.cmdhist );}
+              class HistInput
+            }
+          }
+        }
+        Fl_Box {} {
+          label tilelimiter
+          xywh {0 202 540 267} hide resizable
+        }
+        Fl_Group {} {open
+          xywh {0 217 540 252} box DOWN_BOX
+        } {
+          Fl_Box {ppui.view} {
+            xywh {0 217 540 249}
+            code0 {o->cursor(FL_CURSOR_CROSS);}
+            class Fl_Gview
+          }
+        }
+      }
+    }
+  }
+  Fl_Window {ppui.hrdiagwin} {selected
+    xywh {618 481 280 230} type Double resizable
+    code0 {o->hide();} visible
+  } {
+    Fl_Group {ppui.hrdiag} {
+      xywh {0 0 284 234} box DOWN_BOX color 0 resizable
+      code0 {o->cursor(FL_CURSOR_CROSS);}
+      class Fl_Plot
+    } {}
+  }
+} 

@@ -1,0 +1,1529 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
+ <TITLE> Partiview (PC-VirDir): Commands</TITLE>
+ <LINK HREF="partiview-5.html" REL=next>
+ <LINK HREF="partiview-3.html" REL=previous>
+ <LINK HREF="partiview.html#toc4" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="partiview-5.html">Next</A>
+<A HREF="partiview-3.html">Previous</A>
+<A HREF="partiview.html#toc4">Contents</A>
+<HR>
+<H2><A NAME="s4">4.</A> <A HREF="partiview.html#toc4">Commands</A></H2>
+
+<P>There are two types of commands in <CODE>partiview</CODE>: 
+Control Commands and Data Commands.
+Probably the most visible difference between the two is that every Control
+Command returns feedback to the user, whereas Data Commands
+are interpreted without comment unless an error occurs.</P>
+<P>Some situations, e.g. the command-entry text box, expect to receive
+Control Commands; others, e.g. files (.cf, .speck, etc.) named on
+the command line or specified by <CODE>read</CODE> or <CODE>include</CODE> commands,
+are expected to contain Data Commands.</P>
+<P>However, it is always possible to enter a Data Command
+where a Control Command is expected,
+using the <CODE>add</CODE> command prefix, e.g. you could type in the text box:
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+  add 0 0 0 text The Origin
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+. Likewise, a Control Command
+may be given where data is expected, as in a data or .cf file,
+using the <CODE>eval</CODE> prefix:
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+  1 0 0 text X=1
+  eval bgcolor 0.3 0.2 0.1
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+</P>
+<P>See also the previous <B>starlab</B> example.</P>
+
+
+
+
+
+
+
+
+<H2><A NAME="ss4.1">4.1</A> <A HREF="partiview.html#toc4.1">Control Commands</A>
+</H2>
+
+
+<P>(see partibrains.c::specks_parse_args)</P>
+<P>Control Commands are accepted in the Command window, and in some other contexts.
+Generally, <CODE>partiview</CODE> gives a response to every Control Command,
+reporting the (possibly changed) status.</P>
+<P>Typically, if parameters are omitted, the current state is reported.</P>
+<P>Some commands apply to particles in the current group (see Object group commands);
+others affect global things, such as time or display settings.</P>
+<P>Data Commands can also be given, if prefixed with <CODE>add</CODE>.</P>
+
+
+<H2><A NAME="ss4.2">4.2</A> <A HREF="partiview.html#toc4.2">I/O Control Commands</A>
+</H2>
+
+
+<P>
+<DL>
+<DT><B>read <I>specks-file</I></B><DD>
+<P>Read a file containing Data Commands (typical suffix <CODE>.cf</CODE> or <CODE>.speck</CODE>).</P>
+
+
+<DT><B>async <I>unix-command</I></B><DD>
+<P>Run an arbitrary unix command (invoked via /bin/sh) as a subprocess of <CODE>partiview</CODE>.
+Its standard output is interpreted as a stream of control commands.
+Thus <CODE>partiview</CODE> can be driven externally, e.g. to record an animation
+(using the <CODE>snapshot</CODE> command), or to provide additional GUI controls.
+Several <CODE>async</CODE> commands can run concurrently. 
+Examples are given later. Warning: you cannot interrupt a started command,
+short of hitting ESC to exit partiview.</P>
+
+<DT><B>add <I>data-command</I></B><DD>
+<P>Enter a Data Command where a Control Command is expected,
+e.g. in the text input box.  For example,
+<PRE>
+  add 10 15 -1 text blah
+</PRE>
+
+adds a new label "blah" at 10 15 -1, or
+<PRE>
+  add kira myrun.out
+</PRE>
+
+loads a kira (starlab) output file.</P>
+
+<DT><B>eval <I>control-command</I></B><DD>
+<P>Processes that control command just as if the <CODE>eval</CODE> prefix weren't there.
+Provided for symmetry: wherever either a control command or a data command
+is expected, entering <CODE>eval</CODE> <I>control-command</I> ensures that it's
+taken as a control command.</P>
+
+
+<DT><B>add filepath (data-command)</B><DD>
+<P>Determines the list of directories where all data files, color maps, etc.
+are sought.  See the <CODE>filepath</CODE> entry under
+ Data Commands.</P>
+
+
+</DL>
+</P>
+
+<H2><A NAME="ss4.3">4.3</A> <A HREF="partiview.html#toc4.3">Object Group Control Commands</A>
+</H2>
+
+<P><CODE>Partiview</CODE> can load multiple groups of particles,
+each with independent display settings, colormaps, etc.
+When more than one group is loaded, the Group Row appears on the GUI,
+with one toggle-button for each group.  Toggling the button turns
+display of that group on or off.  Right-clicking turns the group unconditionally on,
+and selects that group as the current one for other GUI controls.</P>
+<P>Many Control Commands apply to the <I>currently selected</I> group.</P>
+<P>Groups always have names of the form g<I>N</I> for some small positive <I>N</I>;
+each group may also have an alias.</P>
+<P>
+<DL>
+<DT><B>g<I>N</I> </B><DD>
+<P>Select group g<I>N</I>.  Create a new group if it doesn't already exist.</P>
+
+<DT><B>g<I>N</I>=<I>alias</I> </B><DD>
+<P>Assign name <I>alias</I> to group g<I>N</I>.
+Note there must be no blanks around the <CODE>=</CODE> sign.</P>
+
+<DT><B>object <I>objectname</I></B><DD>
+<P>Likewise, select object <I>objectname</I>, which may be either an alias name
+or g<I>N</I>.  </P>
+
+<DT><B>g<I>N</I> <I>control-command</I></B><DD>
+
+<DT><B>object <I>objectname</I> <I>control-command</I></B><DD>
+<P>Either form may be used as a <I>prefix</I> to any control command
+to act on the specified group, e.g. <CODE>object fred poly on</CODE></P>
+
+<DT><B>gall <I>control-command</I></B><DD>
+<P>Invoke the given <I>control-command</I> in all groups.
+For example, to turn display of group 3 on and all others off, use:
+<BLOCKQUOTE><CODE>
+<PRE>
+gall off
+g3 on
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<DT><B>on</B><DD>
+
+<DT><B>enable</B><DD>
+<P>Either one will
+enable the display of the currently selected group (as it is by default).</P>
+
+<DT><B>off</B><DD>
+
+<DT><B>disable</B><DD>
+<P>Either one will turn off the display of the current group.</P>
+
+</DL>
+</P>
+
+<H2><A NAME="ss4.4">4.4</A> <A HREF="partiview.html#toc4.4">View Control commands</A>
+</H2>
+
+<P>View commands affect the view; they aren't specific to data groups.</P>
+<P>
+<DL>
+<DT><B>fov <I>float</I></B><DD>
+<P>Angular field of view (in degrees) in Y-direction.</P>
+
+<DT><B>cen[ter] <I>X Y Z</I> [<I>RADIUS</I>]</B><DD>
+<P>Set point of interest.  This is the center of rotation in
+<CODE>[o]rbit</CODE> and <CODE>[r]otate</CODE> modes.  Also, in <CODE>[o]rbit</CODE> mode,
+translation speed is proportional to the viewer's distance from this point.
+The optional <I>RADIUS</I> (also set by <CODE>censize</CODE>) determines the size
+of the marker crosshair, initially 1 unit.</P>
+
+<DT><B>cen[ter] [<I>X Y Z</I> [<I>RADIUS</I>]]
+int[erest] [<I>X Y Z</I> [<I>RADIUS</I>]]</B><DD>
+<P>Set point of interest.  This is the center of rotation in
+<CODE>[o]rbit</CODE> and <CODE>[r]otate</CODE> modes.  And, in <CODE>[o]rbit</CODE> mode,
+translation speed is proportional to the viewer's distance from this point.
+The optional <I>RADIUS</I> (also set by <CODE>censize</CODE>) determines the size
+of the marker crosshair, initially 1 unit.</P>
+<P>****  why is center/interest commented out in the first example. Originally
+this command was documented twice, the first one has /interest commented out.</P>
+
+<DT><B>censize [<I>RADIUS</I>]</B><DD>
+<P>Set size of point-of-interest marker.</P>
+
+<DT><B>where  <I>(also)</I>  w</B><DD>
+<P>Report the 3-D camera position and forward direction vector.</P>
+
+<DT><B>clip <I>NEAR</I> <I>FAR</I></B><DD>
+<P>Clipping distances.  The computer graphics setup always requires
+drawing only objects in some finite range of distances in front of the
+viewpoint.  Both values must be strictly positive, and their ratio
+is limited; depending on the graphics system in use, distant objects
+may appear to blink if the <I>FAR</I>/<I>NEAR</I> ratio exceeds 10000 or so.</P>
+<P>To set the far clip range without changing the near, use a non-numeric
+near clip value, e.g. <CODE>clip - 1000</CODE>.</P>
+
+
+<DT><B>jump [<I>X Y Z</I>] [<I>Rx Ry Rz</I>]</B><DD>
+<P>Get or set the current position (XYZ) and/or viewing (RxRyRz) angle.</P>
+
+<DT><B>readpath</B><DD>
+<P>Read a Wavefront (<CODE>.wf</CODE>) file describing a path through space.</P>
+
+<DT><B>rdata</B><DD>
+<P>Synonym for readpath.</P>
+
+<DT><B>play <I>speed</I>[f]</B><DD>
+<P>Play the currently loaded (from <CODE>readpath</CODE>/<CODE>rdata</CODE>) camera animation
+path, at <I>speed</I> times normal speed,
+skipping frames as needed to keep up with wall-clock time.
+(Normal speed is 30 frames per second.)
+With "f" suffix, displays every <I>speed</I>-th frame, without regard to real
+time.</P>
+
+<DT><B>frame [<I>frameno</I>]</B><DD>
+<P>Get or set the current frame the <I>frameno</I>-th.</P>
+
+<DT><B>update           </B><DD>
+<P>Ensures the display is updated, as before taking a snapshot.
+Probably only useful in a stream of control commands from an <CODE>async</CODE>
+subprocess.</P>
+
+<DT><B>winsize [<I>XSIZE</I> [<I>YSIZE</I>]]</B><DD>
+
+<DT><B>winsize <I>XSIZE</I>x<I>YSIZE</I>+<I>XPOS</I>+<I>YPOS</I></B><DD>
+<P>Resize graphics window.  With no arguments, reports current size.
+With one argument, resizes to given width, preserving aspect ratio.
+With two arguments, reshapes window to that height and width.
+With complete X geometry specification (no embedded spaces),
+e.g. <CODE>winsize 400x350+20-10</CODE>,
+also sets position of graphics window, with +X and +Y measured from
+left/top, -X and -Y measured from right/bottom of screen.</P>
+
+<DT><B>detach [full|hide]  [<I>+XPOS+YPOS</I>]</B><DD>
+<P>Detach graphics window from GUI control strip and optionally
+specify position of control strip.  With <CODE>full</CODE> or <CODE>hide</CODE>,
+makes graphics window full-screen with GUI visible or hidden, respectively.
+With neither <CODE>full</CODE> nor <CODE>hide</CODE>, the graphics window
+is detached but left at its current size.</P>
+<P>The <I>+XPOS+YPOS</I> is a window position in X window geometry style,
+so e.g. <CODE>detach full -10+5</CODE> places the GUI near the
+upper right corner of the screen, 10 pixels in from the right
+and 5 pixels down from the top edge.</P>
+<P>If you don't mind typing blindly, it's still possible to enter
+text-box commands even with the controls hidden;
+press the <I>Tab</I> key before each command to ensure that
+input focus is in the text box.
+Use <I>Tab</I><CODE>detach full</CODE><I>Enter</I>
+to un-hide a hidden control strip.</P>
+
+<DT><B>bgcolor <I>R G B</I></B><DD>
+<P>Set window background color (three R G B numbers or one grayscale value).</P>
+
+
+<DT><B>focallen <I>distance</I></B><DD>
+<P>Focal length: distance from viewer to a typical object of interest.
+This affects stereo display (see below) and navigation: the speed of
+motion in <CODE>[t]ranslate</CODE> and <CODE>[f]ly</CODE> modes is proportional to this
+distance.</P>
+
+<DT><B>stereo [on|off|redcyan|glasses|cross|left|right] [<I>separation</I>]</B><DD>
+<P>Stereo display.  Also toggled on/off by typing <CODE>'s'</CODE> key in graphics window.
+Where hardware allows it, <CODE>stereo glasses</CODE> selects
+CrystalEyes-style quad-buffered stereo.  All systems should be capable of
+<CODE>stereo redcyan</CODE>, which requires wearing red/green or red/blue glasses,
+and of <CODE>cross</CODE> (crosseyed), which splits the window horizontally.
+<CODE>left</CODE> and <CODE>right</CODE> show just that eye's view,
+and may be handy for taking stereo snapshots.</P>
+<P>Useful <I>separation</I> values might be 0.02 to 0.1, or -0.02 to -0.1 to swap
+eyes.  See also <CODE>focallen</CODE> command, which gives the distance to
+a typical object of interest: left- and right-eye images of an object
+at that distance will coincide on the screen.</P>
+<P>Virtual-world eyes will be separated by distance
+2 * <I>focallen * separation</I>, with convergence angle
+2 * <CODE>arctan(</CODE><I>separation</I><CODE>)</CODE>.</P>
+<P>See also the <CODE>winsize</CODE> and <CODE>detach</CODE> commands
+for control over graphics window size and placement.</P>
+<P>Beware: some systems which support hardware ("glasses")
+stereo also require that the display be set to a
+stereo-capable video mode.  Partiview does not do this
+automatically.  For example, on stereo-capable SGI Irix systems,
+you may need to type (to a unix shell)
+<CODE>/usr/gfx/setmon -n 1024x768_96s</CODE> to allow
+stereo viewing and something like <CODE>/usr/gfx/setmon -n 72</CODE>
+to revert.  Otherwise, turning partiview's stereo on
+will just show the left eye's view -- displacing the viewpoint
+but nothing else.</P>
+
+<DT><B>snapset [<CODE>-n</CODE> <I>FRAMENO</I>] <I>FILESTEM</I> [<I>FRAMENO</I>]</B><DD>
+<P>Set parameters for future <CODE>snapshot</CODE> commands.
+<I>FILESTEM</I> may be a printf format string with frame number as
+argument, e.g. <CODE>snapset pix/%04d.ppm</CODE>, generating image names
+of <CODE>pix/0000.ppm</CODE>, <CODE>pix/0001.ppm</CODE>, etc.
+If <I>FILESTEM</I> contains no % sign, then <CODE>.%03d.ppm.gz</CODE> is
+appended to it, so <CODE>snapset ./pix/fred</CODE>
+yields snapshot images named <CODE>./pix/fred.000.ppm.gz</CODE> etc.</P>
+<P>Frame number <I>FRAMENO</I> (default 0) increments with each snapshot taken.</P>
+
+
+<DT><B>snapshot [<I>FRAMENO</I> | <I>FILENAME</I>]</B><DD>
+<P>Capture a snapshot image of the current view.</P>
+<P>Either give <CODE>snapshot</CODE> an explicit filename,
+or else specify a file format string with <CODE>snapset</CODE>
+and then let <CODE>snapshot</CODE> fill in the frame number.
+With neither <I>FRAMENO</I> nor <I>FILENAME</I>,
+<CODE>snapset</CODE> adds one to the previous frame number.</P>
+<P>If <I>FILENAME</I> contains an <CODE>@</CODE> sign, then snapshot records a stereo pair of images, using current stereo, focallen, etc. settings.   The left-eye and right-eye views are saved in files with any <CODE>@</CODE> replaced with <CODE>L</CODE> and <CODE>R</CODE> respectively.</P>
+<P>If built with the JPEG and/or PNG libraries, <CODE>partiview</CODE> can write those types of images directly (determined by suffix: jpg, jpeg, png, ppm).
+Writing other image types, it generally invokes the ImageMagick program <CODE>convert(1)</CODE>,
+which must be installed and be on the user's $PATH.</P>
+<P><CODE>Convert</CODE> is never needed if the <CODE>snapset</CODE> <I>FILESTEM</I> ends in
+<CODE>.ppm.gz</CODE> (invokes gzip rather than convert) or <CODE>.ppm</CODE>
+(no external program required).</P>
+
+</DL>
+</P>
+
+
+<H2><A NAME="ss4.5">4.5</A> <A HREF="partiview.html#toc4.5">Particle Display Control Commands</A>
+</H2>
+
+<P>These commands affect how particles (in the current group) are
+displayed.</P>
+<P>
+<DL>
+<DT><B>psize <I>scalefactor</I></B><DD>
+<P>All particle luminosities (as specified by <CODE>lum</CODE> command)
+are scaled by the product of two factors:
+a <I>lumvar</I>-specific factor given by <CODE>slum</CODE>,
+and a global factor given by <CODE>psize</CODE>.
+So the intrinsic brightness of a particle is
+<I>value-specified-by-</I><CODE>lum</CODE>
+* <I>slum-for-current-lumvar</I>
+* <I>psize-scalefactor</I>.</P>
+
+<DT><B>slum <I>slumfactor</I></B><DD>
+<P>Data-field specific luminosity scale factor, for current choice of
+<I>lumvar</I> as given by the <CODE>lum</CODE> command.
+A <I>slumfactor</I> is recorded independently for each data field, so
+if data fields <CODE>mass</CODE> and <CODE>energy</CODE> were defined, one might say
+<BLOCKQUOTE><CODE>
+<PRE>
+lum mass
+slum 1000
+lum energy
+slum 0.25
+</PRE>
+</CODE></BLOCKQUOTE>
+
+having chosen each variable's <I>slumfactor</I> for useful display,
+and then freely switch between <CODE>lum mass</CODE> and <CODE>lum energy</CODE>
+without having to readjust particle brightness each time.</P>
+
+
+<DT><B>ptsize <I>minpixels</I> <I>maxpixels</I></B><DD>
+<P>Specifies the range of <I>apparent</I> sizes of points,
+in pixels.  Typical values might be <CODE>ptsize 0.1 5</CODE>.
+The graphics system may silently impose an upper limit
+of about 10 pixels.</P>
+
+
+<DT><B>poly [on|off]</B><DD>
+<P>Display polygons, or don't.</P>
+
+
+<DT><B>polysize [<I>scalefactor</I>]</B><DD>
+<P>Multiplier for polygon size.  Default is zero (!), so you must
+set polysize to something else before polygons will show up.</P>
+
+<DT><B>polylumvar [<I>attrname</I> | <CODE>point-size</CODE>] [<CODE>area</CODE> | <CODE>radius</CODE>]</B><DD>
+<P>Choose which attribute determines the radius of a particle's polygon.
+By default, it is <CODE>point-size</CODE>, a pseudo-attribute which varies with
+the brightness of points (so adjusting the slum slider scales polygons too).</P>
+<P>Each polygon's 3-D radius is the <CODE>polysize</CODE> <I>scalefactor</I> times its particle's
+given attribute (whether an actual particle attribute or <CODE>point-size</CODE>).  Or,  
+if the <CODE>area</CODE> keyword is specified, then the radius is the square root
+of attribute * scalefactor.   <CODE>area</CODE> is useful if the attribute represents
+a luminosity; in that case, the polygon total brightness (which is proportional
+to its screen area) becomes proportional to the attribute / distance^2.</P>
+
+<DT><B>polymin <I>minradius</I> [<I>maxradius</I>]</B><DD>
+<P>Specify a minimum screen radius for polygons, in pixels.
+If smaller than this, they are not drawn.</P>
+
+<DT><B>vec [<CODE>off|on|arrow</CODE>]</B><DD>
+<P>Draw a vector at each point, determined by triple of attributes specified by <CODE>vecvar</CODE> data command.
+With "arrow", draws an arrowhead on each vector, with 3-D size equal to
+the vector's length times the 'arrowscale' (second parameter to <CODE>vecscale</CODE> command).  The arrowhead always
+lies in the screen plane, so its size gives a cue to the vector's
+true 3-D length (e.g. when the vector is viewed nearly end-on,
+even a small arrowhead can look longer than the vector does).
+This also means that arrowheads flip orientation when a vector
+passes through being seen nearly end-on.</P>
+<P>Example:
+<PRE>
+datavar 0 mass
+datavar 1 vx
+datavar 2 vy
+datavar 3 vz
+
+vecvar vx
+
+eval vec on
+eval vecscale 0.5
+
+...
+eval vec arrow
+eval vecscale 0.5 0.125   # show arrow at tip of each vector
+</PRE>
+</P>
+
+<DT><B>vecscale [<I>scale</I> <I>arrowscale</I>]</B><DD>
+<P>Set scale of vectors drawn by vec, as multiple of the triple of attributes specified by data-command <CODE>vecvar</CODE>.</P>
+<P>Arrowhead size is set by a new second parameter to "vecscale".
+Defaults are 1.0 and 0.25, meaning that arrowheads are a quarter the main vector's length.</P>
+
+<DT><B>vecalpha [<I>alpha</I>]</B><DD>
+<P>Set the opacity of all vectors.   If too many are overlapping, a small value (e.g. <I>vecalpha 0.1</I>) will help see through more of them.</P>
+
+
+<DT><B>color</B><DD>
+<P>Specify how particles are colored.
+Generally, a linear function of some data field of each particle
+becomes an index into a colormap (see <CODE>cmap</CODE>, <CODE>cment</CODE>).
+<DL>
+<DT><B> color  <I>colorvar</I>  [<I>minval maxval</I>] </B><DD>
+<P>Use data field <I>colorvar</I> (either a name as set by <CODE>datavar</CODE>
+or a 0-based integer column number) to determine color.
+Map <I>minval</I> to color index 1, and <I>maxval</I> to
+the next-to-last entry in the colormap (<I>Ncmap-2</I>).
+The 0th and last (<I>Ncmap-1</I>) colormap entry are used for
+out-of-range data values.</P>
+<P>If <I>minval</I> and <I>maxval</I> are omitted, the actual range of
+values is used.</P>
+
+<DT><B> color  <I>colorvar</I>  exact  [<I>baseval</I>] </B><DD>
+<P>Don't consider field <I>colorvar</I> as a continuous variable;
+instead, it's integer-valued, and mapped one-to-one with
+color table slots.  Data value <I>N</I> is mapped to
+color index <I>N+baseval</I>.</P>
+
+<DT><B> color  <I>colorvar</I>  -exact </B><DD>
+<P>Once the <CODE>exact</CODE> tag is set (for a particular data-field),
+it's sticky.  To interpret that data field as a continuous, scalable
+variable again, use <CODE>-exact</CODE>.</P>
+
+<DT><B> color  const  <I>R G B</I> </B><DD>
+<P>Show all particles as color <I>R G B</I>, each value in range 0 to 1,
+independent of any data fields.</P>
+</DL>
+</P>
+<P>Note: if <I>colorvar</I> is named <CODE>rgb565</CODE> or <CODE>rgb888</CODE>, it is interpreted specially: as a 16-bit (rgb565) or 24-bit (rgb888) integer containing the red, green and blue color values in 5-6-5 or 8-8-8-bit encoding.   Red is most significant.</P>
+
+<DT><B>lum</B><DD>
+<P>Specify how particles' intrinsic luminosity is computed:
+a linear function of some data field of each particle.
+<DL>
+<DT><B> lum <I>lumvar</I>  [<I>minval maxval</I>] </B><DD>
+<P>Map values of data field <I>lumvar</I> (<CODE>datavar</CODE> name or
+field number) to luminosity.
+The (linear) mapping takes field value <I>minval</I> to
+luminosity 0 and <I>maxval</I> to luminosity 1.0.</P>
+<P>If <I>minval</I> and <I>maxval</I> are omitted,
+the actual range of values is mapped to the luminosity range
+0 to 1.</P>
+<P>Note that the resulting luminosities are then scaled by
+the <CODE>psize</CODE> and <CODE>slum</CODE> scale factors, and further
+scaled according to distance as specified by <CODE>fade</CODE>, to compute
+apparent brightness of points.</P>
+
+<DT><B> lum const <I>L</I> </B><DD>
+<P>Specify constant particle luminosity <I>L</I> independent of
+any data field values.</P>
+</DL>
+</P>
+
+<DT><B>fade [planar|spherical|linear <I>refdist</I>|const <I>refdist</I>]</B><DD>
+<P>Determines how distance affects particles' apparent brightness (or "size").
+The default <CODE>fade planar</CODE> gives 1/r^2 light falloff, with r measured
+as distance from the view plane.  <CODE>fade spherical</CODE> is also 1/r^2,
+but with r measured as true distance from the viewpoint.
+<CODE>fade linear</CODE> <I>refdist</I> gives 1/r light falloff -- not physically
+accurate, but useful to get a limited sense of depth.
+<CODE>fade const</CODE> <I>refdist</I> gives constant apparent brightness
+independent of distance, and may be appropriate for orthographic views.</P>
+<P>The <I>refdist</I> for linear and const modes is that distance <I>r</I>
+at which apparent brightness should match that in the 1/r^2 modes --
+a distance to a "typical" particle.</P>
+
+<DT><B>labelmin  <I>minpixels</I></B><DD>
+<P>Labels computed to be smaller than this screen size (pixels) are suppressed.</P>
+
+<DT><B>labelsize <I>scalefactor</I></B><DD>
+
+<DT><B>lsize <I>scalefactor</I></B><DD>
+<P>lsize (alias labelsize) sets the 3-D height of labels.  If the text was created with a
+<CODE>text -size </CODE><I>textsize</I> option, the scalefactor is multiplied by that to determine
+the 3-D size.</P>
+
+<DT><B>point[s]   [on|off]</B><DD>
+<P>Turn display of points on or off.  With no argument, toggles display.</P>
+
+<DT><B>poly[gons]  [on|off]</B><DD>
+<P>Turn display of points on or off.  With no argument, toggles display.</P>
+
+<DT><B>texture [on|off]</B><DD>
+<P>Turn display of textures on or off.  With no argument, toggles.</P>
+
+<DT><B>label[s] [on|off]</B><DD>
+<P>Turn display of label text on or off.  With no argument, toggles.</P>
+
+
+<DT><B>txscale   <I>scalefactor</I></B><DD>
+<P>Scale size of all textures relative to their polygons.
+A scale factor of 0.5 (default) make the texture square
+just fill its polygon, if <CODE>polysides</CODE> is 4.</P>
+
+<DT><B>polyorivar</B><DD>
+<P>Report setting of <CODE>polyorivar</CODE> data-command, which see.</P>
+
+<DT><B>texturevar</B><DD>
+<P>Report setting of <CODE>texturevar</CODE> data-command, which see.</P>
+
+<DT><B>laxes  [on|off]</B><DD>
+<P>Toggle label axes.  When on, and when labels are displayed,
+shows a set of red/green/blue (X/Y/Z) axes to indicate orientation.</P>
+
+<DT><B>polyside(s)</B><DD>
+<P>Number of sides a polygon should have.  Default 11, for fairly round
+polygons.  For textured polygons, <CODE>polysides 4</CODE> might do as well,
+and be slightly speedier.</P>
+
+<DT><B>fast [on|off]</B><DD>
+<P>see also <CODE>ptsize</CODE></P>
+
+<DT><B>ptsize  <I>minpixels</I> [<I>maxpixels</I>]</B><DD>
+<P>Specifies range of apparent (pixel) size of points.
+Those with computed sizes (based on luminosity
+and distance) smaller than <I>minpixels</I> are
+randomly (but repeatably) subsampled -- i.e. some
+fraction of them are not drawn.  Those computed to be
+larger than <I>maxpixels</I> are drawn at size
+<I>maxpixels</I>.</P>
+
+<DT><B>gamma <I>displaygamma</I></B><DD>
+<P>Tells the particle renderer how the display + OpenGL
+relates image values to visible lightness.
+You don't need to change this, but may adjust it
+to minimize the brightness glitches when particles change size.
+Typical values are <CODE>gamma 1</CODE> through <CODE>gamma 2.5</CODE> or so.
+Larger values raise the apparent brightness of dim things.</P>
+
+<DT><B>alpha <I>alpha</I></B><DD>
+<P>Get or set the alpha value, in the range 0 to 1; it determines
+the opacity of polygons.</P>
+
+<DT><B>speed</B><DD>
+<P>For time-dependent data, advance datatime by this many time units
+per wall-clock second.</P>
+
+<DT><B>step [<I>timestep</I>]</B><DD>
+<P>For time-varying data, sets current timestep number.
+Real-valued times are meaningful for some kinds of data including those
+from Starlab/kira; for others, times are rounded to nearest integer.
+If running, <CODE>step</CODE> also stops datatime animation.  (See <CODE>run</CODE>.)</P>
+
+<DT><B>step [+|-]<I>deltatimestep</I></B><DD>
+<P>If preceded with a plus or minus sign, adds that amount to current time.</P>
+
+<P>(note that <CODE>fspeed</CODE> has been deprecated)</P>
+
+<DT><B>run</B><DD>
+<P>Continue a stopped animation (see also <CODE>step</CODE>).</P>
+
+<DT><B>tfm [-v] [<I>numbers...</I>]</B><DD>
+<P>Object-to-world transformation. 
+May take 1, 6, 7, 9 or 16 parameters: either 
+<I>scalefactor</I>,
+or <I>tx ty tz rx ry rz </I><I>scalefactor</I>>],
+or 16 numbers for 4x4 matrix,
+or 9 numbers for 3x3 matrix.
+See <I>Coordinates and Coordinate Transformations</I>.</P>
+<P>With no numeric parameters, reports the current object-to-world transform.
+Use <CODE>tfm -v</CODE> to see the transform and its inverse in several forms.</P>
+
+<DT><B>move [g<I>N</I>] {on|off}</B><DD>
+<P>Normally, navigation modes <CODE>[r]otate</CODE> and <CODE>[t]ranslate</CODE>
+just adjust the viewpoint (camera).  However,
+if you turn <CODE>move on</CODE>, then <CODE>[r]otate</CODE> and <CODE>[t]ranslate</CODE>
+move the currently-selected object group instead,
+e.g. to adjust its alignment relative to other groups.
+(<CODE>[o]rbit</CODE> and <CODE>[f]ly</CODE> modes always move the camera.)</P>
+<P>To indicate that <CODE>move</CODE> mode is enabled,
+the control strip shows the selected group's name in
+bold italics, as <B><I>[g3]</I></B>.
+Use <CODE>move off</CODE> to revert to normal.
+The <CODE>tfm</CODE> command reports the current object-group-to-global-world
+transformation.</P>
+
+<DT><B>fwd</B><DD>
+
+<DT><B>datawait   on|off</B><DD>
+<P>For asynchronously-loaded data (currently only <CODE>ieee</CODE> data command),
+say whether wait for current data step to be loaded.
+(If not, then keep displaying previous data while loading new.)</P>
+
+<DT><B>cmap    <I>filename</I></B><DD>
+<P>Load (ascii) filename with RGB values, for coloring particles.
+The <CODE>color</CODE> command selects which data field is mapped to color index
+and how.</P>
+<P>Colormaps are text files, beginning with a number-of-entries
+line and followed by R G B or R G B A entries one per line;
+see the <I>Colormaps</I> section.</P>
+
+<DT><B>vcmap -v <I>fieldname</I>  <I>filename</I></B><DD>
+<P>Load colormap as with <CODE>cmap</CODE> command.  But use this colormap
+only when the given data field is selected for coloring.
+Thus the <CODE>cmap</CODE> color map applies to all data fields for which
+no <CODE>vcmap</CODE> has ever been specified.</P>
+
+<DT><B>cment  <I>colorindex</I>  [<I>R G B</I>]</B><DD>
+<P>Report or set that colormap entry.</P>
+
+<DT><B>rawdump <I>dump-filename</I></B><DD>
+<P>All particle attributes (not positions though) 
+are written to a <I>dump-filename</I>.  Useful for debugging.
+Warning: it will happily overwrite an existing file with that name.</P>
+
+<DT><B>warp [on|off]</B><DD>
+<P>Enable, disable, or report the status of any <CODE>warp</CODE> data-command set up for the current group.
+If it exists, particles's positions can change with time, in a handful of canned ways
+built into the <CODE>warp</CODE> command.  See the <CODE>warp</CODE> entry under Data Commands.</P>
+
+</DL>
+</P>
+
+<H2><A NAME="ss4.6">4.6</A> <A HREF="partiview.html#toc4.6">Particle subsetting &amp; statistics</A>
+</H2>
+
+
+<P>
+<DL>
+
+<DT><B>clipbox ...</B><DD>
+<P>see <CODE>cb</CODE> below.</P>
+
+<DT><B>cb ....</B><DD>
+<P>Display only a 3D subregion of the data -- the part lying within the clipbox.
+<DL>
+<DT><B>cb <I>xmin ymin zmin  xmax ymax zmax</I> </B><DD>
+<P>Specified by coordinate ranges.
+Note only spaces are used to separate the 6 numbers.</P>
+<DT><B>cb <I>xcen,ycen,zcen xrad,yrad,zrad</I>  </B><DD>
+<P>Specified by center and "radius" of the box.
+Note no spaces after the commas!</P>
+<DT><B>cb <I>xmin,xmax ymin,ymax zmin,zmax</I>  </B><DD>
+<P>Specified by coordinate ranges.</P>
+<DT><B>cb <CODE>off</CODE> </B><DD>
+<P>Disable clipping.  The entire dataset is again visible.</P>
+<DT><B>cb <CODE>on</CODE>  </B><DD>
+<P>Re-enable a previously defined clipbox setting. It will also
+display the clipbox again</P>
+<DT><B>cb <CODE>hide</CODE>  </B><DD>
+<P>Hide the clipbox, but still discard objects whose centers
+lie outside it.</P>
+</DL>
+
+Note this command does not toggle clipping
+if no arguments given (that would be handy
+and more in line with similar commands). 
+If no arguments given, it reports the current clipbox.</P>
+
+<DT><B>thresh</B><DD>
+<P>Display a subset of particles, chosen by the value of
+some data field.  Each <CODE>thresh</CODE> command overrides
+settings from previous commands, so it cannot be used to
+show unions or intersections of multiple criteria.
+For that, see the <CODE>only</CODE> command.  However, unlike <CODE>only</CODE>,
+the <CODE>thresh</CODE> criterion applies to time-varying data.
+<DL>
+<DT><B>thresh <I>field</I> <I>minval</I> <I>maxval</I> </B><DD>
+<P>Display only those particles where
+<I>minval</I> &lt;= field <I>field</I> &lt;= <I>maxval</I>.
+The <I>field</I> may be given by name (as from <CODE>datavar</CODE>)
+or by field number.</P>
+<DT><B>thresh <I>field</I> <CODE>&lt;</CODE><I>maxval</I> </B><DD>
+
+<DT><B>thresh <I>field</I> <CODE>&gt;</CODE><I>minval</I> </B><DD>
+<P>Show only particles where <I>field</I> is &lt;=
+or &gt;= the given threshold.</P>
+<DT><B>thresh [off|on]</B><DD>
+<P>Disable or re-enable a previously specified threshold.</P>
+</DL>
+</P>
+
+<DT><B>only=  <I>datafield</I>  <I>value</I>  <I>minvalue-maxvalue</I>  &lt;<I>value</I> &gt;<I>value</I> ...</B><DD>
+
+<DT><B>only+  <I>datafield</I>  <I>value</I>  <I>minvalue-maxvalue</I>  &lt;<I>value</I> &gt;<I>value</I> ...</B><DD>
+
+<DT><B>only-  <I>datafield</I>  <I>value</I>  <I>minvalue-maxvalue</I>  &lt;<I>value</I> &gt;<I>value</I> ...</B><DD>
+<P>Scans particles (in the current timestep only!), finding those where
+<I>datafield</I> has value <I>value</I>, or has a value in range
+<I>minvalue</I> &lt;= value &lt;= <I>maxvalue</I>, or whatever.
+Multiple value-ranges may be specified to select the union of several sets.
+The resulting set of particles is assigned to (<CODE>only=</CODE>), added to
+(<CODE>only+</CODE>) or subtracted from (<CODE>only-</CODE>) the <CODE>thresh</CODE> selection-set.
+Also display just particles in that selection-set, as if <CODE>see thresh</CODE>
+had been typed.</P>
+<P>The net effect is illustrated by these examples:
+<DL>
+<DT><B>only= type 1-3 5</B><DD>
+<P>Show only particles of type 1, 2, 3 or 5.</P>
+<DT><B>only- mass &lt;2.3  &gt;3.5</B><DD>
+<P>After the above command, shows only the subset
+of type 1/2/3/5 particles AND have mass between 2.3 and 3.5.
+(Note that to take the intersection of two conditions,
+you must subtract the complement of the latter one.
+Maybe some day there'll be an <CODE>only&amp;</CODE>.</P>
+</DL>
+</P>
+
+<DT><B>see  <CODE>selexpr</CODE></B><DD>
+<P>Show just those particles in the selection-set <CODE>selexpr</CODE>.
+Predefined set names are <CODE>all</CODE>, <CODE>none</CODE>, <CODE>thresh</CODE> and <CODE>pick</CODE>,
+and other names may be defined by the <CODE>sel</CODE> command.
+The default is <CODE>see all</CODE>.  Using the <CODE>thresh</CODE> or <CODE>only</CODE>
+commands automatically switch to displaying <CODE>see thresh</CODE>.</P>
+<P>Note that you can see the complement of a named set,
+e.g. all except the <CODE>thresh</CODE>-selected objects, with
+<CODE>see -thresh</CODE>.</P>
+
+<DT><B>sel <CODE>selname = selexpr</CODE></B><DD>
+<P>Compute a logical combination of selection-sets and assign them
+to another such set.  The set membership is originally assigned by
+<CODE>thresh</CODE> or <CODE>only</CODE> commands.  Yeah, I know this doesn't make sense.
+Need a separate section to document selection-sets.</P>
+
+<DT><B>sel <CODE>selexpr</CODE></B><DD>
+<P>Count the number of particles in the selection-set <CODE>selexpr</CODE>.</P>
+
+<DT><B>clearobj</B><DD>
+<P>Erase all particles in this group.  Useful for reloading on the fly.</P>
+
+<DT><B>every   <I>N</I></B><DD>
+<P>Display a random subset (every <I>N</I>-th) of all particles.
+E.g. <CODE>every 1</CODE> shows all particles, <CODE>every 2</CODE> shows about half of them.
+Reports current subsampling factor, and the current total number of particles.</P>
+
+<DT><B>hist <I>datafield</I> [-n <I>nbuckets</I>] [-l] [-c] [-t] [<I>minval</I>] [<I>maxval</I>]</B><DD>
+<P>Generates a (numerical) histogram of values of <I>datafield</I>,
+which may be a named field (as from <CODE>datavar</CODE>) or a field index.
+Divides the value range (either <I>minval</I>..<I>maxval</I>
+or the actual range of values for that field) into <I>nbuckets</I> 
+equal buckets (11 by default).  Uses logarithmically-spaced
+intervals if <CODE>-l</CODE> (so long as the data range doesn't include zero).
+If a clipbox is defined, use <CODE>-c</CODE> to count only
+particles within it.  If a <CODE>thresh</CODE> or <CODE>only</CODE>
+subset is defined, use <CODE>-t</CODE> to count only the chosen subset.</P>
+
+<DT><B>bound  [w]</B><DD>
+<P>Reports 3D extent of the data.  With <CODE>w</CODE>, reports it in
+world coordinates, otherwise in object coordinates.</P>
+
+<DT><B>datavar</B><DD>
+
+<DT><B>dv</B><DD>
+<P>Report names and value ranges (over all particles in current group)
+of all named data fields.</P>
+
+
+</DL>
+</P>
+
+<H2><A NAME="ss4.7">4.7</A> <A HREF="partiview.html#toc4.7">Boxes</A>
+</H2>
+
+<P>
+<DL>
+<DT><B>showbox  <I>list of integer box level numbers...</I></B><DD>
+
+<DT><B>hidebox  <I>list of integer box level numbers...</I></B><DD>
+
+<DT><B>box[es] [off|on|only]</B><DD>
+<P>Turn box display off or on; or display boxes but hide all particles.</P>
+
+<DT><B>boxcmap <I>filename</I></B><DD>
+<P>Color boxes using that colormap.
+Each box's level number (set by <CODE>-l</CODE> option of <CODE>box</CODE> data-command,
+default 0) is the color index.</P>
+
+<DT><B>boxcment  <I>colorindex</I>  [<I>R G B</I>]</B><DD>
+<P>Get or set the given box-colormap index.  E.g. <CODE>boxcment 0</CODE>
+reports the color of boxes created with no <CODE>-l</CODE> specified.</P>
+
+<DT><B>boxlabel [on|off]</B><DD>
+<P>Label boxes by id number
+(set by <CODE>-n</CODE> option of <CODE>box</CODE> data-command).</P>
+
+<DT><B>boxaxes [on|off]</B><DD>
+<P>Toggle or set box axes display mode.</P>
+
+<DT><B>boxscale [float] [on|off] </B><DD>
+
+<DT><B>gobox <I>boxnumber</I></B><DD>
+
+<DT><B>goboxscale</B><DD>
+
+<DT><B>menu fmenu</B><DD>
+
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+
+                        BEGIN CAVEMENU
+        pos P1 P2
+        wall P1
+        hid [P1]
+        show [P1]
+        h  [P1]
+        demandfps [P1]
+        font
+        help
+        ?
+                        END CAVEMENU    
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+
+<DT><B>datascale</B><DD>
+
+</DL>
+</P>
+
+<H2><A NAME="ss4.8">4.8</A> <A HREF="partiview.html#toc4.8">Data commands </A>
+</H2>
+
+
+<P>(see also partibrains.c::specks_read)</P>
+<P>Data Commands can be placed in a data file.
+Lines starting with <CODE>#</CODE> will be skipped. </P>
+<P>Control Commands can also be given, if prefixed with the <CODE>eval</CODE> command.</P>
+<P>
+<DL>
+
+<DT><B>read <I>file</I> </B><DD>
+<P>read a <CODE>speck</CODE> formatted file. Recursive, commands can nest. (strtok ok??)
+Note that <CODE>read</CODE> is also a Control Command, doing exactly the same thing.</P>
+
+<DT><B>include  <I>file</I></B><DD>
+<P>read a <CODE>speck</CODE> formatted file.</P>
+
+<DT><B>ieee [-t time] <I>file</I></B><DD>
+<P>Read a IEEEIO formatted file, with optional timestep number (0 based).
+Support for this type of data must be explicitly compiled into the program.</P>
+
+<DT><B>kira <I>file</I> </B><DD>
+<P>read a <CODE>kira</CODE> formatted file. See the <CODE>kiractl</CODE> Control
+Command to modify the looks of the objects.  Only present if Starlab is compiled
+into partiview.</P>
+
+<DT><B>setenv name value</B><DD>
+<P>Add (or change) a named variable of the environment variables space of
+partiview. Enviroment variables, like in the normal unix shell, can be
+referred to by prepending their name with a $. 
+<I>Note there probably is not an unsetenv command</I>.</P>
+
+<DT><B>object <I>gN=ALIAS</I></B><DD>
+<P>Defines/Selects a particular group number (N=1,2,3....) to an ALIAS. In
+command mode you can use <CODE>gN=ALIAS</CODE>. Any data following this command
+will now belong to this group.</P>
+
+<DT><B>object <I>ObjectName</I></B><DD>
+<P>Select an existing group. Following data will now belong to this group.</P>
+
+<DT><B>sdbvars <I>var</I></B><DD>
+<P>Choose which data fields to
+extract from binary sdb files (any of: <CODE>mMcrogtxyzSn</CODE>) for subsequent
+<CODE>sdb</CODE> commands.</P>
+
+<DT><B>sdb [-t time] <I>file</I></B><DD>
+<P>Read an SDB (binary) formatted file, with optional timestep number.
+(Default time is latest <CODE>datatime</CODE>, or 0.)</P>
+
+<DT><B>pb [-t time] <I>file</I></B><DD>
+<P>Read a <CODE>.pb</CODE> (binary) particle file, with optional timestep number.
+(Default time is latest <CODE>datatime</CODE>, or 0.)
+A <CODE>.pb</CODE> file contains (all values 32-bit integer or 32-bit IEEE float):
+<OL>
+<LI>magic number, 0xFFFFFF98  (int32)</LI>
+<LI>byte offset of first particle (int32)</LI>
+<LI>number of attributes (int32)</LI>
+<LI>sequence of null-terminated attribute name strings,
+attributename0 \0 attributename1 \0 ...</LI>
+<LI>possibly some pad bytes, enough to reach the specified
+first-particle file offset</LI>
+<LI>sequence of particle records,
+each (number-of-attributes + 4)*4 bytes long:
+<OL>
+<LI>particle-id (int32)</LI>
+<LI>particle X, Y, Z (3 float32's) </LI>
+<LI>particle attributes (number-of-attributes float32's)</LI>
+</OL>
+
+ending at the end of the file (i.e. there's no particle-count field).</LI>
+</OL>
+
+Either big- or little-endian formats are accepted; the value of the
+magic number determines endianness of all values in that file.</P>
+
+<DT><B>box[es] <I>....</I></B><DD>
+<P>Draw a box, using any of the following formats:</P>
+<P>
+<DL>
+<DT><B> <CODE>xmin ymin zmin  xmax ymax zmax</CODE> </B><DD>
+
+<DT><B> <CODE>xmin,xmax ymin,ymax zmin,zmax</CODE>   </B><DD>
+
+<DT><B> <CODE>xcen,ycen,zcen xrad,yrad,zrad</CODE>  </B><DD>
+
+<DT><B> <CODE>[-t time] [-n boxno] [-l level] xcen,ycen,zcen  xrad,yrad,zrad </CODE>  </B><DD>
+
+</DL>
+
+<CODE>level</CODE> determines color.</P>
+
+<DT><B><CODE>mesh</CODE> [<CODE>-t</CODE> <I>txno</I>] [<CODE>-c</CODE> <I>colorindex</I>] [<CODE>-s</CODE> <I>style</I>]</B><DD>
+<P>Draw a quadrilateral mesh, optionally colored or textured.
+Following the <B>mesh</B> line, provide a line with the mesh dimensions:
+nu nv</P>
+<P>Following this comes the list of <I>nu</I>*<I>nv</I> mesh vertices,
+one vertex (specified by several blank-separated numbers) per line.
+(Blank lines and comments may be interspersed among them.)
+Note that the mesh connections are implicit:
+vertex number i*nu+j is adjacent to (i-1)*nu+j, (i+1)*nu+j, i*nu+(j-1),
+and i*nu+(j+1).  Each vertex line has three or five numbers:
+the first three give its 3-D position, and if a <CODE>-t</CODE> texture was
+specified, then two more fields give its u and v texture coordinates.</P>
+
+<P>Options:
+<DL>
+<DT><B> <CODE>-t</CODE> <I>txno</I> </B><DD>
+<P>Apply texture number <I>txno</I> to surface.
+In this case, each mesh vertex should also include
+u and v texture coordinates.</P>
+<DT><B> <CODE>-c</CODE> <I>colorindex</I> </B><DD>
+<P>Color surface with color from
+integer cmap entry <I>colorindex</I>.</P>
+<DT><B> <CODE>-s</CODE> <I>style</I> </B><DD>
+<P>Drawing style: 
+<DL>
+<DT><B> <I>solid</I> </B><DD>
+<P>filled polygonal surface (default)</P>
+<DT><B> <I>wire</I> </B><DD>
+<P>just edges</P>
+<DT><B> <I>point</I> </B><DD>
+<P>just points (one per mesh vertex)</P>
+</DL>
+</P>
+</DL>
+</P>
+
+<DT><B><I>Xcen Ycen Zcen</I> ellipsoid <I>[options]... [transformation]</I></B><DD>
+<P>Draw an ellipsoid, specified by:
+<DL>
+<DT><B> <CODE>Xcen Ycen Zcen</CODE> </B><DD>
+<P>Center position in world coordinates</P>
+<DT><B> <CODE>-c</CODE> <I>colorindex</I> </B><DD>
+<P>Integer color index (default -1 => white)</P>
+<DT><B> <CODE>-s</CODE> <I>style</I> </B><DD>
+<P>Drawing style: 
+<DL>
+<DT><B> <I>solid</I> </B><DD>
+<P>filled polygonal surface (default)</P>
+<DT><B> <I>plane</I> </B><DD>
+<P>3 ellipses: XY, XZ, YZ planes</P>
+<DT><B> <I>wire</I> </B><DD>
+<P>latitude/longitude ellipses</P>
+<DT><B> <I>point</I> </B><DD>
+<P>point cloud: one per lat/lon intersection</P>
+</DL>
+</P>
+<DT><B> <CODE>-r</CODE> <I>Xradius</I>[,<I>Yradius</I>,<I>Zradius</I>] </B><DD>
+<P>Radius (for sphere) or semimajor axes (for ellipsoid)</P>
+<DT><B> <CODE>-n</CODE> <I>nlat[,nlon]</I> </B><DD>
+<P>Number of latitude and longitude divisions.
+Relevant even for <I>plane</I> style, where they determine
+how finely the polygonal curves approximate circles.
+Default <I>nlon</I> = <I>nlat</I>/2 + 1.</P>
+<DT><B> <I>transformation</I> </B><DD>
+<P>Sets the spatial orientation of the ellipsoid.
+May take any of three forms:
+<DL>
+<DT><B> (nothing) </B><DD>
+<P>If absent, the ellipsoid's
+coordinate axes are the same as the world axes
+for the group it belongs to.</P>
+<DT><B> 9 blank-separated numbers </B><DD>
+<P>A 3x3 transformation matrix T from ellipsoid coordinates
+to world coordinates, in the sense
+Pworld = Pellipsoid * T  +  [Xcen, Ycen, Zcen].</P>
+<DT><B> 16 blank-separated numbers </B><DD>
+<P>A 4x4 transformation matrix, as above but for the
+obvious changes.</P>
+</DL>
+</P>
+</DL>
+</P>
+
+<DT><B>waveobj [-time <I>timestep</I>] [-static] [-texture <I>number</I>] [-c <I>colorindex</I>] [-s <I>style</I>]  <I>file.obj</I></B><DD>
+<P>Load a Wavefront-style .obj model.  Material properties are
+ignored; the surface is drawn in white unless <CODE>-c</CODE> <I>colorindex</I>
+in which case it's drawn using that color-table color.
+Also if <CODE>-texture</CODE> (alias <CODE>-tx</CODE>) is supplied,
+the surface is textured using whatever texture coordinates are
+supplied in the .obj file.  The model is displayed at all times
+only if marked <CODE>-static</CODE>; otherwise it's displayed only
+at the time given by <CODE>-time</CODE> <I>timestep</I> or by the most recent <I>datatime</I>.</P>
+<P>A subset of the .obj format is accepted:
+<DL>
+<DT><B>v <I>X Y Z</I></B><DD>
+<P>-- vertex position</P>
+<DT><B>vt <I>U V</I></B><DD>
+<P>-- vertex texture coordinates</P>
+<DT><B>vn <I>NX NY NZ</I></B><DD>
+<P>-- vertex normal</P>
+<DT><B>f <I>V1 V2 V3 ...</I></B><DD>
+<P>-- face, listing just position indices for each vertex.
+The first <CODE>v</CODE> line in the .obj file has index 1, etc.</P>
+<DT><B>f <I>V1/T1 V2/T2 V3/T3 ...</I></B><DD>
+<P>-- face,
+listing position and texture coordinates for each vertex of the face.</P>
+<DT><B>f <I>V1/T1/N1 V2/T2/N2 V3/T3/N3 ...</I></B><DD>
+<P>-- face,
+listing position, texture-coordinate, and normal indices for each vertex.</P>
+</DL>
+
+Note that material properties (mtl) are ignored.  Waveobj models are colored
+according to the <CODE>-c</CODE> <I>colorindex</I> option (integer index
+into the current <CODE>cmap</CODE> colormap), or white if no <CODE>-c</CODE> is used. 
+If texturing is enabled -- if the .obj model contains <CODE>vt</CODE> entries,
+and the <CODE>-texture</CODE> option appears, and that numbered texture exists --
+then the given texture color multiplies or replaces the <CODE>-c</CODE> color,
+according to the texture options.</P>
+
+
+<DT><B>tfm [camera] <I>numbers...</I></B><DD>
+<P>Object-to-world transformation.
+May take 1, 6, 7, 9 or 16 numbers: either 
+<I>scalefactor</I> or 
+<I>tx ty tz rx ry rz </I>[it/scalefactor/]
+or 16 numbers for 4x4 matrix,
+or 9 numbers for 3x3 matrix.
+See <I>Coordinates and Coordinate Transformations</I>.</P>
+<P>Normally the transform is to world coordinates;
+but with optional <CODE>camera</CODE> prefix, the object's position
+is specified relative to the camera, useful to place
+legends in a fixed position on the screen.
+In camera coordinates, (0,0,0) is the viewpoint,
+x=y=0 at screen center, and negative z extends forward.
+Try for example
+<PRE>
+    tfm camera -3 -3 -20  0 0 0
+    0 0 0 text -size 20  Legend
+</PRE>
+</P>
+
+<DT><B>eval <I>command</I></B><DD>
+<P>execute a Control Command.</P>
+
+<DT><B>feed  <I>command</I></B><DD>
+<P>Synonym for <CODE>eval</CODE>.</P>
+
+<DT><B>VIRDIR  <I>command</I></B><DD>
+<P>Synonym for <CODE>eval</CODE>.</P>
+
+
+<DT><B>filepath <I>path</I></B><DD>
+<P>A colon-separated list of directories in which datafiles, color maps, etc.
+will be searched for. If preceded with the <CODE>+</CODE> symbol,
+this list will be appended to the current <I>filepath</I>.</P>
+
+<DT><B>polyorivar <I>indexno</I></B><DD>
+<P>By default, when polygons are drawn, they're parallel to the screen plane --
+simple markers for the points.  It's sometimes useful to give each 
+polygon a fixed 3-D orientation (as for disk galaxies).  To do this,
+provide 6 consecutive data fields, representing two 3-D orthogonal unit
+vectors which span the plane of the disk.  Then use
+<CODE>polyorivar </CODE><I>indexno</I>
+giving the data field number of the first of the 6 fields.
+The vectors define the X and Y directions on the disk, respectively --
+relevant if texturing is enabled.</P>
+<P>Actually, unit vectors aren't essential; making them different lengths
+yields non-circular polygonal disks. </P>
+<P>If <CODE>polyorivar</CODE> is specified for the group, but some polygons should
+still lie in the screen plane, use values <CODE>9 9 9 9 9 9</CODE> for those polygons.</P>
+
+<DT><B>vecvar <I>indexno</I></B><DD>
+<P>If enabled with the <CODE>vec</CODE> a.k.a. <CODE>vectors</CODE> control command,
+partiview can draw a vector, or an arrow, based from each point.
+A triple of consecutive data fields define the vector,
+whose length can be scaled with the <CODE>vecscale</CODE> command.</P>
+<P>Use the <CODE>vecvar</CODE> data command to specify the first (x component)
+of the triple of fields.  </P>
+<P>See <CODE>partiview/data/vectordemo.cf</CODE> and <CODE>vector.speck</CODE> for an example.</P>
+
+<DT><B>texture [-aiAOlmnMDB] <I>txno file.sgi</I> </B><DD>
+<P>
+<DL>
+<DT><B> -a(lpha) </B><DD>
+<P>A single-channel image would normally be used as luminance data.
+With <CODE>-a</CODE>, the image is taken as opacity data instead
+(GL_ALPHA texture format).</P>
+<DT><B> -i(ntensity) </B><DD>
+<P>For 1- or 3-channel images, compute the intensity of each pixel
+and use it to form an alpha (opacity) channel.</P>
+<DT><B> -A(dd) </B><DD>
+<P>Use additive blending.  This texture will add to, not obscure,
+the brightness of whatever lies behind it (i.e. whatever is drawn later).</P>
+<DT><B> -O(ver) </B><DD>
+<P>Use "over" compositing.  This texture will obscure features lying
+behind it according to alpha values at each point.</P>
+
+
+<DT><B> -M(odulate) </B><DD>
+<P>Multiply texture brightness/color values by the colormap-determined
+color of each particle.</P>
+<DT><B> -D(ecal) </B><DD>
+<P>The textured polygon's color is determined entirely by the texture,
+suppressing any colormapped color.</P>
+<DT><B> -B(lend) </B><DD>
+<P>Probably not very useful.</P>
+</DL>
+</P>
+
+<DT><B>texturevar <I>field</I></B><DD>
+<P>If polygon-drawing and texturing are turned on, use the given
+<I>field</I> (datavar name or number) in each particle to select 
+which texture (if any) to draw on its polygon.</P>
+
+<DT><B>coord <I>name ... 16 world-to-coord tfm floats (GL order)</I></B><DD>
+
+<DT><B>dataset <I>indexno datasetname</I></B><DD>
+<P>Give names to multiple datasets in IEEEIO files (read with <CODE>ieee</CODE> command).
+<I>indexno</I> is an integer, 0 being the first dataset.</P>
+
+<DT><B>datavar <I>indexno name [minval maxval]</I></B><DD>
+<P>Name the variable in data field <I>indexno</I>.  The first data field has 
+<I>indexno</I> 0.
+If provided, <I>minval maxval</I> supply the nominal range of that data variable;
+some control commands (<CODE>lum</CODE>, <CODE>color</CODE>) need to know the range of data
+values, and will use this instead of measuring the actual range.</P>
+
+<DT><B>datatime <I>time</I></B><DD>
+<P>Label subsequent data with this <I>time</I> (a non-negative integer).</P>
+
+
+<DT><B>warp</B><DD>
+<P>When 'warp' has been defined for a group,
+all its particles get their positions (re)computed according to
+(a) the warp data-command's parameters, (b) the current time, (c) the particle's
+initial position, and (d) maybe some attributes of each particle.</P>
+
+<P>There are several (mutually exclusive) kinds of warping available: 
+<UL>
+<LI> for doing a sort of differential rotation for disk-like galaxies;</LI>
+<LI> for doing N-D to 3-D projection, where particle positions are replaced with        
+(time-independent) linear combinations of attribute values;</LI>
+<LI> linear or polynomial extrapolation of the particle position with time,
+with coefficients specified as triples of attributes</LI>
+<LI> for putting particles on epicycle-style orbits,
+resembling the motions of stars in a disk galaxy</LI>
+</UL>
+</P>
+<P>Options to <CODE>warp</CODE> data command:
+<DL>
+
+<DT><B>-p period0[f|s]</B><DD>
+<P>"Rotation period".  Sets timescale of motion, in frames (f) or seconds (s).  </P>
+
+<DT><B>-extrap coef0[,degree]]</B><DD>
+<P>Extrapolate position with time.  Velocity is given by attribute coef0 and the two attributes following it
+(coef0 .. coef0+2), in the sense p = p_0 + [coef0 .. coef0+2] * (time/period0).
+If <I>degree</I> given (default 1), uses 3*<I>degree</I> attributes as polynomial coefficients, as
+p=p0+(t/period0)*field[coef0..coef0+2]+(t/period0)^2*[coef0+3..coef0+5]+...</P>
+
+<DT><B>-sheet ampl,xlength,zlength</B><DD>
+<P>For disk galaxy style: Applies exponential sheet warp for disk lying in the X-Z plane.
+Scale set by xlength and zlength, Y-displacement set by ampl.</P>
+
+<DT><B>-f fin,fout</B><DD>
+<P>For disk-galaxy style: gives time range over which warp applies.  </P>
+
+<DT><B>-z zerotime</B><DD>
+<P>For disk galaxy style: sets time at which particles are in their original positions.</P>
+
+<DT><B>-R rot[,drot]</B><DD>
+<P>Disk galaxy style: Add constant to rotation angle.</P>
+
+<DT><B>-T o2d</B><DD>
+<P>Provide object-to-disk coordinate transform (in "disk" coordinates, the disk lies in X-Z plane).
+9 or 16 numbers.</P>
+
+<DT><B>-F d2o</B><DD>
+<P>Provide disk-to-object transform.  9 or 16 numbers.</P>
+
+<DT><B>-r rcore[,transition][w]</B><DD>
+<P>Disk galaxy style: set radius of rigidly-rotating inner region, and transition to constant-velocity region</P>
+
+<DT><B>-fix x,y,z[w]|radius[w]</B><DD>
+<P>Disk galaxy style: Keep the given 3-D point, or a point at the given disk radius, fixed.  
+E.g. track the sun.</P>
+
+<DT><B>-galaxy gorbcoef0</B><DD>
+<P>Special disk galaxy style.  Each star is on its own disk-galaxy-like orbit,
+with 8 orbital parameters given by 8 consecutive attributes starting with gorbcoef0.
+See galaxyorbit.h (read the source).</P>
+
+<DT><B>-ride speckno</B><DD>
+<P>Ride along with speckno'th particle in first loaded group (displace particles by the difference
+between their computed orbit position and the ridden-on particle).</P>
+</DL>
+</P>
+
+<DT><B><I>Xpos Ypos Zpos Var0 .... </I></B><DD>
+<P>These lines, with XYZ positions in the first 3 columns, will make up the bulk
+of a typical dataset. The 4th and subsequent columns contain the values of the
+datavariables as named with the <B>datavar</B> commands. Note that
+data variable (field) numbers are 0-based.</P>
+
+</DL>
+</P>
+
+
+<H2><A NAME="ss4.9">4.9</A> <A HREF="partiview.html#toc4.9">Kira/Starlab </A>
+</H2>
+
+
+<P>To read Kira output, in human-readable or binary <B>tdyn</B> form, use the
+``<CODE>kira</CODE> <I>kirafilename</I>'' data-command.</P>
+
+
+<H3>Kira particle attributes </H3>
+
+<P>The particles read in have the following attributes:
+<DL>
+<DT><B> id </B><DD>
+<P>positive integer worldline index for single stars
+(matching the id in the kira stream).
+For non-leaf (center-of-mass) tree nodes, <CODE>id</CODE> is a
+negative integer.</P>
+<DT><B> mass </B><DD>
+<P>Mass, in solar mass units (see ``kira mscale'' control command).</P>
+<DT><B> nclump </B><DD>
+<P>Number of stars in this particle's subtree.
+1 for isolated stars, 2 for binaries, etc.</P>
+<DT><B> Tlog </B><DD>
+<P>base-10 log of temperature (K)</P>
+<DT><B> Lum  </B><DD>
+<P>Luminosity in solar-mass units.  (Note this is linear, not log luminosity.)</P>
+<DT><B> stype </B><DD>
+<P>Stellar type code (small integer).
+The [bracketed] message reported when picking (button-2 or p key)
+on a star gives the corresponding human-readable stellar type too.</P>
+<DT><B> ismember </B><DD>
+<P>Is this star still a member of (bound to) the cluster?</P>
+<DT><B> rootid </B><DD>
+<P>id of root of subtree.  For single stars, rootid = id.</P>
+<DT><B> treeaddr </B><DD>
+<P>bit-encoded location of star in subtree.</P>
+<DT><B> ringsize </B><DD>
+<P>0 for stars.
+For nonleaf nodes, this is the semimajor axis or instantaneous
+separation (according to ``<CODE>kira sep</CODE>'').
+This field isn't multiplied by the scale factor given in
+<CODE>kira sep</CODE>; it gives the actual distance in kira units.</P>
+<DT><B> sqrtmass </B><DD>
+<P>Square root of mass/Msun.  Might be useful for luminosity scaling.</P>
+<DT><B> mu </B><DD>
+<P>Mass ratio for center-of-mass nodes.  Zero for stars.</P>
+</DL>
+</P>
+
+
+<H3>Hertzsprung-Russell diagram </H3>
+
+<P>The H-R diagram can be invoked via the <CODE>More...</CODE> menu (upper left)
+or by the <CODE>kira hrdiag on</CODE> control command.
+Axes for this plot are log temperature (initial range from 5 to 3)
+and log luminosity (initial range -4 to 6).  Ranges may be changed
+with the <CODE>kira hrdiag range</CODE> command or with keystrokes.</P>
+<P>Keystroke commands in the H-R window:
+<DL>
+<DT><B> b/B </B><DD>
+<P>Adjust the (b)rightness (dot size) of the dots plotted for each star.
+Small b brightens (enlarges); capital B shrinks.</P>
+<DT><B> a/A </B><DD>
+<P>Adjust (a)lpha (opacity) of dots plotted for each star.
+If many stars coincide in H-R, their brightnesses add.
+Thus reducing opacity may help clarify the relative L-T space
+densities, if there are many stars.</P>
+<DT><B> v/V </B><DD>
+<P>Zoom out (v) or in (V) by 33%.  The point under the cursor
+becomes the center of the view.</P>
+</DL>
+</P>
+
+<H3>kira control commands </H3>
+
+<P>Viewing control options for kira/Starlab
+formatted data that have been read in with
+the <CODE>kira</CODE> Data Command.
+All control commands begin with <CODE>kira</CODE> too.
+<DL>
+<DT><B> kira node {on|off|root} </B><DD>
+<P>Show or hide center-of-mass nodes for multiple stars.
+With <CODE>on</CODE>, show CM nodes for each level in a binary tree.
+With <CODE>root</CODE>, show only the top-level CM node for each multiple.</P>
+
+<DT><B> kira ring {on|off|root} </B><DD>
+<P>Show circles around multiple stars; <CODE>on</CODE> and <CODE>root</CODE> as above.</P>
+
+<DT><B> kira tree {on|off|cross|tick} [<I>tickscale</I>]  </B><DD>
+<P>Show lines connecting pairs of stars at each binary-tree level
+in a multiple group.  With <CODE>cross</CODE>, also show a perpendicular
+line -- a tick mark -- which crosses at the CM point,
+and whose length is <CODE>tickscale</CODE> (default 0.5) times the
+true separation of the pair.
+With <CODE>tick</CODE>, just show the tick-mark with no connecting line.</P>
+
+<DT><B> kira size [sep|semi] [<I>ringscalefactor</I>]  </B><DD>
+<P>Determines 3-D size of circles when <CODE>kira ring on</CODE>.
+With <CODE>kira size sep</CODE>, ring diameter is scalefactor * instanteous
+separation.  With <CODE>kira size semi</CODE>, ring radius is scalefactor * a
+(the semimajor axis of the two-body system, or <CODE>|a|</CODE> for
+hyperbolic orbits).  Using <CODE>semi</CODE> gives typically more stable-looking
+rings, though they will pop if they become marginally (un-)bound.
+Default: <CODE>kira size semi 1.5</CODE>.</P>
+
+<DT><B>kira scale <I>ringscalefactor</I></B><DD>
+<P>Synonym for <CODE>kira size</CODE> above.</P>
+
+<DT><B> kira span <I>minpix</I> <I>maxpix</I> </B><DD>
+<P>Sets screen-space (pixel) size limits on rings.
+They'll never get smaller than radius <I>minpix</I> nor larger than
+<I>maxpix</I>, regardless of true 3-D size.  Thus even vanishingly
+tight binaries can always be visibly marked.
+Default: <CODE>kira span 2 50</CODE>.</P>
+
+<DT><B> kira track <I>id</I>|on|off </B><DD>
+<P>As particle <I>id</I> moves through time, move the viewpoint in the
+same way, so that (if you don't move the view by navigation)
+the particle remains fixed in apparent position.
+<CODE>kira track off</CODE> disables tracking, and <CODE>kira track on</CODE>
+re-enables it.
+Use the <CODE>p</CODE> key or mouse button 2 to pick a particle
+(or CM node if <CODE>kira node on</CODE>) to see its numeric <I>id</I>.
+Transient center-of-mass nodes (shown if <CODE>kira node on</CODE>)
+can be tracked while they exist.</P>
+
+<DT><B> kira mscale <I>massscalefactor</I>[!] </B><DD>
+<P>Set/check the mass scale factor.
+Starlab dynamical mass values are multiplied by this factor
+for reporting to the user.  Normally <I>massscalefactor</I>
+should equal the initial cluster mass in solar-mass units.
+For some input files, starlab can determine what was specified
+in the original kira run.  If so, ``kira mscale <I>number</I>''
+will be ignored unless <I>number</I> ends with an exclamation point (!).
+So with no <CODE>!</CODE>, the user (or .cf script) provides a default value;
+use <CODE>!</CODE> to override the original mass scale.</P>
+
+<DT><B> kira int <I>seldest</I> [= <I>selsrc</I>] </B><DD>
+<P>Track interactions between particles.
+As the cluster evolves, whenever any star matching
+selection-expression <I>selsrc</I> encounters (is a member of
+the same kira tree as) another particle, then the other
+particle is added to the <I>seldest</I> set.  If <I>seldest</I>
+and <I>selsrc</I> are the same (or if ``= <I>selsrc</I>'' is omitted),
+then <CODE>kira int</CODE> computes the transitive closure of the
+interaction set.
+Otherwise, only stars that encounter members of the initial
+<I>selsrc</I> set become members of the <I>seldest</I> set.
+Example:
+<DL>
+<DT><B> click on some star </B><DD>
+<P>The clicked-on star(s) become members of the <CODE>pick</CODE> set.</P>
+<DT><B> sel x = pick </B><DD>
+<P>Save a copy in the new set named <CODE>x</CODE>.</P>
+<DT><B> kira int x </B><DD>
+<P>Accumulate encounters in the set <CODE>x</CODE>.</P>
+<DT><B> emph x </B><DD>
+<P>Increase brightness of members of <CODE>x</CODE>.</P>
+<DT><B> kira trail x </B><DD>
+<P>Extend trails from these set members.</P>
+</DL>
+</P>
+
+
+<DT><B> kira trail <I>selexpression</I>|off </B><DD>
+<P>Leave trails behind particles selected by <I>selexpression</I>
+(see the <CODE>sel</CODE> command).  As (dynamical) time passes, for each
+display update, one sample point is added to the trail
+for each selected particle.  (If you reverse the direction of
+time, the trails will fold back on themselves.)  Some examples:
+<DL>
+<DT><B> kira trail all </B><DD>
+<P>Makes trails grow behind all particles
+(including CM nodes, if they're displayed)</P>
+<DT><B> kira trail pick </B><DD>
+<P>Clicking on a star will make a trail grow behind it.
+If several stars are within picking range (under the cursor),
+trails will grow behind each of them.</P>
+<DT><B> thresh -s big  mass > 1.5 </B><DD>
+<P>threshold when masses are larger than 1.5</P>
+<DT><B> kira trail big </B><DD>
+<P>These two commands (a) select all stars exceeding
+1.5 solar masses and (b) extend trails behind them.</P>
+</DL>
+</P>
+
+<DT><B> kira trail clear </B><DD>
+<P>Erase current trails, but let them continue to accumulate
+as time passes.</P>
+
+<DT><B> kira maxtrail <I>nsamples</I> </B><DD>
+<P>Set how many time-points are kept for each particle's trail,
+initially 50.</P>
+
+<DT><B> kira hrdiag on|off </B><DD>
+<P>toggle to turn HR Diagram on or off. Initially off.</P>
+<DT><B> kira hrdiag range <I>logTleft logTright logLbottom logLtop</I> </B><DD>
+<P>set limits on the HR Diagram axes.</P>
+
+</DL>
+</P>
+
+
+<H2><A NAME="ss4.10">4.10</A> <A HREF="partiview.html#toc4.10">Textures </A>
+</H2>
+
+<P>To make polygons be textured:
+<UL>
+<LI>Use a series of <CODE>texture</CODE> data-commands to provide a table
+of textures, each named by a small integer <I>texture-index</I>;</LI>
+<LI>Create a data field in each particle whose value is the
+<I>texture-index</I> for that particle's polygon</LI>
+<LI>Use data-command <CODE>texturevar </CODE><I>fieldno</I> to specify which
+data field that is.</LI>
+<LI>Use control commands (<CODE>poly</CODE>, <CODE>polylumvar</CODE>, <CODE>polysize</CODE>)
+to enable drawing polygons and textures,
+and to give the polygons nonzero size.</LI>
+<LI>Possibly use control command <CODE>polysides</CODE> to specify
+4-sided polygons -- a bit faster to draw than default 11-gons.</LI>
+</UL>
+
+It doesn't matter whether the texture-index data field is given a datavar name.</P>
+<P>For each particle, if the value of its <I>texturevar</I>'th field either
+(a) doesn't match the value in some <CODE>texture</CODE> command or
+(b) the file named in that <CODE>texture</CODE> command couldn't be read,
+then its polygon is drawn as if texturing were disabled.</P>
+
+<H2><A NAME="ss4.11">4.11</A> <A HREF="partiview.html#toc4.11">Coordinates and Coordinate Transformations</A>
+</H2>
+
+<P>Matrices as for the <B>tfm</B> command
+are intended to be multiplied by an
+object-coordinate row vector on the left,
+so that 4x4 matrices specify a translation
+in their 13th through 15th entries.  Generally they're
+in the sense of an object-or-camera-to-world transform.</P>
+<P>The six- or seven-number transforms (<I>tx ty tz rx ry rz </I>[it/scalefactor/],
+as accepted by the <B>tfm</B> and <B>jump</B> commands)
+are interpreted as</P>
+<P><I>Pworld = Pobject * scalefactor * </I>rotY(<I>ry</I>) * rotX(<I>rx</I>) * rotZ(<I>rz</I>) * translate(<I>tx,ty,tz</I>)</P>
+
+<H2><A NAME="ss4.12">4.12</A> <A HREF="partiview.html#toc4.12">Colormap Files</A>
+</H2>
+
+<P>Colormap files, as read by the <CODE>cmap</CODE> and <CODE>vcmap</CODE> commands,
+are line-oriented text files.  Blank lines are ignored, as are
+<CODE>#</CODE> comments.  The first nonblank, non-comment line gives
+the colormap <I>size</I> (number of entries).  Later lines may have the form
+<PRE>
+  &lt;it/R G B/
+</PRE>
+
+giving red, green, and blue, each in the range 0 .. 1.
+Typically there will be <I>size</I> of these lines.  However the
+colormap need not be written sequentially; a line like
+<PRE>
+  &lt;it/colorindex/:  &lt;it/R G B/
+</PRE>
+
+places that RGB value at that <I>colorindex</I>, in the range 0 .. <I>size</I>-1.
+Later <I>R G B</I> lines are assigned to <I>colorindex+1</I>, <I>colorindex+2</I>
+and so on.  Also,
+<PRE>
+  &lt;it/colorindex/ := &lt;it/oldcolorindex/
+</PRE>
+
+copies the (previously-assigned) RGB value from <I>oldcolorindex</I>
+and assigns it to <I>colorindex</I>.</P>
+
+<HR>
+<A HREF="partiview-5.html">Next</A>
+<A HREF="partiview-3.html">Previous</A>
+<A HREF="partiview.html#toc4">Contents</A>
+</BODY>
+</HTML>

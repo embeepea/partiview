@@ -1,0 +1,2699 @@
+<!doctype linuxdoc system>
+
+<!-- 
+     Changelog:
+     2000-09-25   created the changelog after a week of initial editing    PJT
+     2000-10-10   made consistent with VERSION 0.1 release                 PJT
+     2000-11-07   election night changes                                   PJT
+     2000-11-20   document some CVS and new configure stuff for 0.3        PJT
+     2000-12-28   document new movie features for the new CVS version      
+                  and lotsa more commands described now                    PJT
+     2001-07-19   Even more commands described.  Separate kira section.   slevy
+     2001-08-30   better introduction and library descriptions, 
+                  added some command descriptions, removed redundancies,
+                  added examples to make animated gifs                     pjt
+
+
+     2002-01-22   pjt
+     Note that linuxdoc should be converted to the DocBook format, which supersedes
+     linuxdoc and has a lot more features. Conversion can be done with ld2db.sh
+     and some perl scripts. clean_ld2db.pl cleans up the dirty conversion, after
+     which manually a few small things will need to be cleaned up.
+     See the C-C++ Beautifier for details.
+
+     2002-01-03   some more installation notes
+     2002-05-07   some notes on virdir vs. partiview
+     2002-06-19   describe stereo, waveobj, detach                       slevy
+     2002-06-20   document windows build process                         slevy
+     2002-06-25   some doc for colormaps, selected-sets, only=           slevy
+     2005-02-15   example how to compile and run on Fedora Core 3        pjt
+ -->
+
+<!--
+  $Log: partiview.sgml,v $
+  Revision 1.28  2013/12/08 21:14:05  slevy
+  Update for version 0.93:
+  rgb888 => full-24-bit-color colorindex (like rgb565)
+  vec, vecscale, vecalpha commands
+  ctrl-S to toggle left/right stereo
+
+  New but undocumented features:
+  insist on using GLEW library  (need update to build instructions)
+      snapshot's [-q jpeg_quality]
+  pixelaspect command
+
+  Revision 1.27  2011/12/07 16:24:42  slevy
+  Describe vecvar command.
+  Update derived files.
+
+  Revision 1.26  2010/04/27 23:47:58  slevy
+  Fix bugs...
+
+  Revision 1.25  2010/04/27 23:44:49  slevy
+  Assorted updates, including warp command.
+
+  Revision 1.24  2005/02/16 13:52:36  pteuben
+  added some FC3 comments
+
+  Revision 1.23  2004/10/19 02:10:58  slevy
+  Add blurbs describing .obj (Wavefront) and .pb (simple binary particle) formats.
+
+  Revision 1.22  2002/06/27 04:23:12  slevy
+  Describe Windows build process (for both partiview and starlab).
+  Update FLTK.  Avoid mentioning fltk 2.0 since it probably doesn't work.
+  Try using <verb> around code blocks; with sgml2latex, <code> places
+  ugly horizontal rules around the blocks and misplaces them so that they
+  crop some of the text.
+
+  Describe "detach" command and new cross-eyed stereo feature.
+  Describe thresh, only=/only-/only+, see and sel commands.
+  But really need a separate section about how selection sets should work.
+  (Maybe writing the section will make it clear how they *should* work.)
+  Add "thresh" example.  Look at stellar distribution by B-V - the Orion
+  spur really does show up in blue!
+
+  Describe transform syntax including "tfm camera", making multiplication
+  order explicit.
+
+  Describe colormap file syntax in new section.  Document "cment" & "vcmap" cmds.
+
+ -->
+
+<article>
+
+<!-- Title information -->
+
+<title> Partiview (PC-VirDir)
+<author> Peter Teuben, Stuart Levy
+<date> 1 December 2013
+
+<abstract>
+
+partiview is a program that enables you to visualize and animate
+particle data. partiview runs on relatively simple desktops and
+laptops, but is mostly compatible with its big brother VirDir.
+
+This document helps you installing and running the development version 
+of partiview.
+</abstract>
+
+<!-- Table of contents -->
+<toc>
+
+<!-- Begin the document -->
+
+<!--------------------------------------------------------------------------- -->
+
+<sect> Installation
+<p>
+
+This release has been tried on Linux (Fedora, Ubuntu, etc.), Mac OS X, Irix and Windows.
+<p>
+partiview needs two libraries to compile: OpenGL (or MESA) for the 
+drawing operations, and FLTK for the graphical user interface.
+These libraries are known to work on MS-Windows as well as many Unix flavors.
+
+
+<sect1> OpenGL (possibly via Mesa)
+<p>
+
+Most platforms will have it installed already, whether as libMesaGL or libGL.
+Our <tt/configure/ script (see below) 
+should take care of the two possible options.
+<p>
+	Homepage: <htmlurl url="http://mesa3d.sourceforge.net/"
+			  name="http://mesa3d.sourceforge.net/">
+
+<p>
+	Redhat packages: (part of powertools I believe)
+
+
+<sect1> FLTK
+<p>
+Also make sure <tt/FLTK/ is installed, from fltk.org.
+FLTK versions 1.3.x (e.g. 1.1.7, 1.1.9, ...) work.  
+FLTK 2 will not work with partiview.
+
+If you're not sure whether you already have it, try
+
+<tscreen><code>
+       % locate libfltk.a 
+       % locate Fl_Slider.h
+
+if they fail, then
+
+       % cd &lt;where-ever&gt;/fltk-1.3.0
+       % make install
+  
+</code></tscreen>
+
+       (you only need it if you want to recompile partiview at some point,
+        not if you just want to run it, since FLTK is built-in to partiview binaries.)
+<p>
+	Homepage: <htmlurl url="http://www.fltk.org/"
+			  name="http://www.fltk.org/">
+<p>
+	Find rpms: <htmlurl url="http://rpmfind.net"
+			   name="http://rpmfind.net">
+
+<P>     FLTK is under continuous development.   Versions from 1.1.1 through
+1.1.9 have been successfully tested with partiview. Some problems
+with other versions exist, but 1.1.4 is also known to work.
+
+
+<sect1> partiview
+<p>
+
+You can decide to use a branded version, usually available as a tar or zip file,
+or use the CVS (see below).
+Extract the tarball, and install the program from within the 
+<tt/src/ directory:
+
+<tscreen><code>
+       % tar zxf partiview-0.6.tar.gz
+
+       % cd partiview-0.6/src
+       % make clean                (if you really must compile a new executable)
+       % ./configure               (GNU autoconf toolset to ease installation)
+       % make depend               (might need to make new local dependancies)
+       % make partiview	           (should not have to edit Makefile anymore)
+
+</code></tscreen>
+
+
+If you encounter difficulties of locating either the FLTK or MESA/OpenGL
+libraries, configure script options can specify them:
+<tt/--with-fltk=/<it/dirname/ names the directory which contains the
+<tt/lib/ and <tt/FL/ subdirectories, <tt/--with-mesa=/<it/dirname/
+can specify the Mesa installation directory [??], and
+<tt/--with-kira=/<it/dirname/ names the Starlab directory, whose default
+value is taken from environment variable STARLAB_PATH if that is set.
+
+<sect1> CVS
+<p>
+The current source code of <tt/partiview/ is always available from CVS,
+with public anonymous read-only access.  Occasionally we stamp out a
+packaged release, too, but looking to CVS is best.
+
+(Partiview developers can request a non-anonymous CVS account
+from Peter Teuben -- <tt/teuben@astro.umd.edu/.)
+
+Currently the CVS repository machine is <tt/cvs.astro.umd.edu/.
+Here's a sample session with some commonly used CVS commands:
+
+<tscreen><code>
+ export CVSROOT   :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot
+ setenv CVSEDITOR emacs
+
+ cvs -d :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot  login
+		                     # only needed once, to set up "pserver" CVS access
+
+ cvs -d :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot checkout partiview
+			             # get a new local sandbox to work in, or
+
+ cd partiview                        # goto the root directory of partiview
+ cvs -n -q update                    # check if others had made any changes
+ cvs update                          # if so, update your sandbox and/or resolve conflicts
+
+ cd partiview/src                    # goto the 'src' directory of partiview
+ ./configure --with-fltk=/some/where/fltk-1.3.something/ --with-glew=/some/where/glew...
+
+ emacs partibrains.c                 # edit some files
+ make all                            # compile the program
+ ./partiview                         # test the program
+ emacs kira_parti.cc                 # edit another file
+ make all                            # check if it still compiles
+
+ cvs -n -q update                    # check if anybody else made changes
+ cvs update                          # if so, update your sandbox again, resolve conflicts
+
+ cvs commit                          # and commit your changes
+
+</code></tscreen>
+
+<sect1> Compiling under Windows
+<p>
+Partiview can be compiled from the command line on Windows using 
+ <tt>gcc/g++</tt> with
+<tt/MinGW32, MSYS and w32api/ (see <tt>http://mingw.org/</tt>).  The MinGW route is currently the only way
+to compile with kira/Starlab support.  There's no provision for building
+partiview within the MS Visual Studio GUI.   Mingw64 has not been tested, only Mingw32.
+
+
+To compile with MinGW and company, you'll need to:
+<enum>
+<item> Install <tt/MinGW/ (gcc, etc.), 
+	 and the <tt/MSYS/ suite of
+	UNIX-like tools.  It's easiest to simply fetch and run the mingw installer.  See the Download link in:
+    <htmlurl url="http://mingw.org"
+        name="http://mingw.org">
+<item> Install into a directory such as <tt>C:\MinGW</tt>.
+<item> Open a MinGW shell: invoke msys.bat, which will be under something like <tt>C:\MinGW\MSys\1.0\msys.bat</tt>.
+
+<item> Use MinGW to build FLTK.   (FLTK 1.3.x, e.g. 1.3.0, works with partiview.  FLTK 2.0 won't work.
+Not sure about versions in between.)   Unpack the FLTK source distribution and say
+<tscreen><verb>
+    sh configure
+    make
+</verb></tscreen>
+
+<item> Build the Starlab libraries, if desired:
+  <enum>
+    <item>Use CVS to checkout the Starlab sources into some directory:
+<tscreen><verb>
+    cd C:\some\where
+    set CVSROOT=:pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot
+    cvs login
+    cvs checkout starlab
+    cd starlab
+</verb></tscreen>
+
+    <item>Copy <tt>templates\starlab_setup.bat</tt> to
+	<tt>local\starlab_setup.bat</tt>, and edit it.
+	Change the first two <tt/set/ commands: set <tt/STARLAB_PATH/
+	to the installation directory -- in the above example,
+	<tt>set STARLAB_PATH=C:\some\where\starlab</tt>.
+	Also optionally update (or remove) <tt/set PATH=.../
+	to add MSYS and MinGW <tt/bin/ directories to it.
+    <item>From a Windows command window, type
+
+<tscreen><verb>
+     local\starlab_setup
+     make libs  
+</verb></tscreen>
+
+    <item>If successful, you should find in the <tt/lib/ directory
+	the files <tt/libdstar.a  libdyn.a  libnode.a  librdc.a  libsstar.a  libstd.a  libtdyn.a/
+   </enum>
+  <p>
+  <item>
+    Now, back in the <tt>partiview/src</tt> directory,
+    use <tt/configure/ and <tt/make/ as under Unix.
+    The MSYS package imposes its own UNIX-like syntax for Windows pathnames,
+    which you'll need to use as arguments to configure and friends,
+    with forward- instead of backslashes and a /<it/drive-letter/ prefix.
+    Also, if typing to a Windows command-window, shell scripts like
+    <tt>configure</tt> must be explicitly fed to <tt>sh</tt>.
+    Thus for example if FLTK is installed in <tt>C:\util\fltk-1.1.9</tt>
+    and Starlab is in <tt>F:\src\starlab</tt>, then you might build
+    partiview by typing
+<tscreen><verb>
+	sh configure --with-fltk=/c/util/fltk-1.3.0  --with-kira=/f/src/starlab
+	make
+</verb></tscreen>
+    Note there's no need to specify the location of the OpenGL or other
+    libraries; the configure script and MinGW tools already know
+    where to find those.  Omit the "--with-kira=..." if you're not using Starlab.
+</enum>
+
+
+<!--------------------------------------------------------------------------- -->
+<sect> Directory structure
+<p>
+
+Here is the directory structure:
+
+<p>
+<tscreen><verb>
+     partiview/             root directory
+     partiview/src          source code
+     partiview/data         sample datafiles (e.g. Hipparcos Bright Star Catalogue)
+     partiview/doc          manual (sgml, and derived  html, txt, ps/dvi)
+     partiview/scripts      various useful scripts (calculator, moviemaker, etc.)
+     partiview/nemo         NEMO specific converters/code
+     partiview/starlab      STARLAB specific converters/code
+     partiview/tutor        examples of tutorial type code (added in 0.2)
+     
+</verb></tscreen>
+
+<sect> Running the program
+<p>
+First we describe a simple example how to run <tt/partiview/ with a supplied sample
+dataset. Then we describe the different windows that <tt/partiview/ is made up of, and
+the different commands and keystrokes it listens to.
+
+<sect1>  Example 1: Hipparcos Bright Star Catalogue 3-D viewing
+<p>
+
+Start the program using one of the sample  "speck" files in the
+<tt/data/ directory:
+
+<tscreen><code>
+       % cd partiview/data
+       % ./hipbright
+or
+       % partiview hipbright
+</code></tscreen>
+
+and this should come up with a display familiar to most of us who
+watch the skies. You should probably enlarge the
+window a bit. Mine comes up in roughly a 300 by 300 display window,
+which may be a bit small (certainly on my screen :-)
+(Hint: the <tt/.partiviewrc/ file may contain commands like
+<tt/eval winsize 600 400/.)
+
+
+Hit the TAB key to bring focus to the (one line) command window inbetween
+the log screen (top) and viewing screen (bottom). Type the commands
+
+<tscreen><code>
+	fov 50				(field of view 50 degrees)
+	jump 0 0 0 80 70 60		(put yourself in the origin
+					and look at euler angles
+					RxRyRz (80,70,60)
+
+</code></tscreen>
+
+and it should give another nice comfy view :-)  If you ever get lost, 
+and this is not hard, use
+the <tt/jump/ command to go back to a known position and/or viewing
+angle.
+
+<figure loc="tbp">
+<img src="pv1.gif">
+<caption>partiview view</caption>
+</figure>
+
+<p>
+Note that spatial units for this dataset are
+parsecs, though angular units are degrees for any data in partiview.
+<p>
+Now play with the display, use the 't', 'r', 'f' and 'o' keys 
+(keys are case sensitive) in the viewing window and use the
+left and mouse buttons down to (carefully) move around a bit, and make
+yourself comfortable with moving around. Using the 't' button you get
+some idea of the distance of the stars by moving back and forth a little
+(the parallax trick). In fact, if you 't' around a little bit, you may
+see a green line flashing through the display. This is one of the  RGB
+(xyz) axes attached to the (0,0,0) [our sun] position.  You should see
+Procyon and Sirius exhibit pretty large parallaxes, but Orion is pretty
+steady since it is several hundred parsecs away.
+If you move the right mouse button you will zoom in/out and 
+should see our Sun flash by with the red-green-blue axes.
+<p>
+The RGB axes represent the XYZ axes in a (right-handed)
+cartesian system. For the Hipparcos
+data the X (red) axis points to RA=0h, Y (green) axis to RA=6h, both in the equatorial
+plane, and the Z (blue) axis points to the equatorial north pole.
+<p>
+Try and use the middle mouse button (or the 'p' key)  to click on Sirius
+or Procyon, and see if you can get it to view its properties.  Now use
+the 'P' key to switch center to rotation to that star. Sirius is
+probably a good choice. Move around a bit, and try and get the sun and orion
+in the same view :-)
+<p>
+[NOTE: these Hipparcos data do not have reliably distance above
+100-200 pc, so Orion's individual distances are probably uncertain to 30%]
+<p>
+
+A little bit on the types of motion, and what the mouse buttons do
+
+<tscreen><code>
+
+              |     left            middle          right
+              |     Button-1        Button-2        Button-3         Shift Button-1
+------------------------------------------------------------------------------------
+f (fly)       |     fly             'pick'          zoom
+o (orbit)     |     orbit           'pick'          zoom
+r (rotate)    |     rotate X/Y      'pick'          rotate Z            translate
+t (translate) |     translate       'pick'          zoom
+
+</code></tscreen>
+
+The point of origin for rotations can be changed with the 'P' button.
+First you can try and pick ('p' or Button-2) a point, and if found,
+hit 'P' to make this point the new rotation center default.
+
+
+
+<tscreen><code>
+red   = X axis
+green = Y axis
+blue  = Z axis
+</code></tscreen>
+
+To choose an arbitrary center of rotation, use the <tt/center/ command.
+
+<sect1> Top Row
+<p>
+The top row contains some shortcuts to some frequently used commands.
+From left to right, it should show the following buttons:
+<p>
+<descrip>
+
+<tag> More </tag>
+Offers some mode switches as toggles: <tt/inertia/
+for continues spin or motion,
+and an <tt/H-R Diagram/ to invoke a separate H-R diagram window
+for datasets that support stellar evolution.
+
+<tag> [g1] </tag>
+Pulldown g1, g2, ... (or whichever group) 
+is the currently selected group. See  <tt/object/ command
+to make aliases which group is defined to what object. If multiple
+groups are defined, the next row below this contains a list of all
+the groups, and their aliases, so you can toggle them to be displayed.
+
+<tag> [f]ly </tag>
+Pulldown to select fly/orbit/rot/tran, which can also be activate
+by pressing the f/o/r/t keys inside the viewing window.
+
+<tag> point </tag>
+Toggle to turn the points on/off. See also the <tt/points/ command.
+
+<tag> poly </tag>
+Toggle to turn polygons on/off. See also the <tt/polygon/ command.
+
+<tag> lbl </tag>
+Toggle to turn labels on/off. See also the <tt/label/ command.
+
+<tag> tex </tag>
+Toggle to turn textures on/off. See also the <tt/texture/ command.
+
+<tag> box </tag>
+Toggle to turn boxes on/off. See also the <tt/boxes/ command.
+
+<tag> #.### </tag>
+The current displayed value of the <tt/logslum lum/ slider (see next)
+
+<tag> logslum lum </tag>
+Slider controlling the logarithm of the <bf/datavar/ variable 
+selected as luminosity (with the <tt/lum/ command).
+
+</descrip>
+
+<sect1> Group row (optional)
+<p>
+When more than one group has been activated (groups of particles or objects 
+can have their own display properties, and be turned on and off at will),
+a new Group Row will appear as the 2nd row.
+<p>
+Left-clicking (button 1) on a button toggles the display of that group;
+right-clicking (button 3) enables display of the group,
+and also selects it as the current group for GUI controls and
+text commands.
+
+<sect1> Time Animation rows (Optional)
+
+
+<p>
+For time-dependent data, the third and fourth row from
+the top control the currently displayed data-time.
+This time-control bar is only visible when the object
+has a nonzero time range.
+
+<descrip>
+
+<tag> T </tag>
+Shows the current time (or offset from the tripmeter).
+The absolute time is the sum of the <bf/T/ and <bf/+/ fields.
+Both are editable.
+See also the <tt/step/ control command.
+
+<tag>trip </tag>
+Press to mark a reference point in time.
+The T field becomes zero, and the + field (below)
+is set to current time.  As time passes, T shows the
+offset from this reference time.
+
+<tag>back </tag>
+Press to return to reference time (sets T to 0).
+
+<tag> + </tag>
+Current last time where tripmeter was set. You can reset to
+the first frame with the command <tt/step 0/
+
+<tag> dial </tag>
+Drag to adjust the current time.  Sensitivity depends
+on the speed setting; dragging by one dial-width
+corresponds to 0.1 wall-clock second of animation,
+i.e. 0.1 * <it/speed/ in data time units.
+
+<tag> |< </tag>
+
+<tag> >| </tag>
+Step time backwards or forwards by 0.1 * <it/speed/ data time units.
+See also the <tt/</ and <tt/>/ keyboard shortcuts.
+
+<tag> << </tag> <p>
+
+<tag> >> </tag>  toggle movie move forwards in time
+Toggle animating backwards or forwards in time, by 
+1 * <it/speed/ data time units per real-time second.
+See also the <tt/{/, <tt/~/, and <tt/}/ keyboard shortcuts.
+
+<tag> #.#### </tag>
+(Logarithmic) value denoting <it/speed/ of animation.
+See also the <tt/speed/ control command.
+
+
+</descrip>
+
+
+<sect1> Camera (path) Animation row
+<p>
+The fifth (or 4th or 3rd, depending if Group and/or Time rows are present)
+row from the top controls loading and playing sequences of moving through space.
+<p>
+<descrip>
+
+<tag> Path... </tag>
+Brings up a filebrowser to load a <bf/.wf/ path file. This is a file with on each
+line 7 numbers: xyz location, RxRyRz viewing direction, and FOV (field of view).
+The <tt/rdata/ command loads such path files too.
+
+<tag> Play </tag>
+Play the viewpoint along the currently loaded path,
+as the <tt/play/ command does.
+Right-click for a menu of play-speed options.
+
+<tag> << < [###] >>> </tag>
+Step through camera-path frames.
+See also <tt/frame/ control command.
+
+<tag> slider </tag>
+Slides through camera path, and displays current frame.
+
+</descrip>
+
+<sect1> Logfile window
+<p>
+The third window from the top contains a logfile of past commands
+and responses to them, and can be resized by dragging the bar between
+command window and viewing window.
+The Logfile window also has a scroll bar on the left. You can
+direct the mouse to any previous command, and it will show up in the
+command window. Using the arrow keys this command can then be edited.
+<p>
+
+<sect1> Command window
+<p>
+The Command window is a single line entry window, in which Control
+Commands can be given.  Their responses appear in the Logfile
+window and on the originating console. (unlike Data Commands,
+which show no feedback). You can still give Data Commands in
+this window by prefixing them with the <tt/add/ command.
+The Up- and Down-arrow keys (not those on the keypad) scroll through
+previous commands, and can be edited using the arrow keys and a subset
+of the emacs control characters.
+<p>
+
+<sect1> Viewing window
+<p>
+The (OpenGL) Viewing window is where all the action occurs.  Typically
+this is where you give single keystroke commands and/or move the mouse
+for an interactive view of the data.  It can be resized two ways:
+either by resizing the master window, or by picking up the separator
+between Viewing window and Command window above.
+
+<sect1> Example 2: a (starlab) animation
+<p>
+Setting up a small animation in for example Starlab can be done quite simply as follows:
+(see also the primbim16.mk makefile to create a standard one):
+
+<tscreen><code>
+  % makeplummer -i -n 20 | makemass -l 0.5 -u 10.0 | scale -s | kira -d 2 -D x10 > run1
+  % partiview run1.cf
+  % cat run1.cf
+
+  kira run1
+  eval every
+  eval lum mass 0 0.01
+  eval psize 100
+  eval cment 1  1 .7 .3
+  eval color clump exact
+       
+</code></tscreen>
+
+Alternatively, if you had started up partiview without any arguments, the following
+Control Command (see below) would have done the same
+
+<tscreen><code>
+  read run1.cf
+  
+</code></tscreen>
+
+<sect1> Example 3: stereo viewing 
+<p>
+The 's' key within the viewing window toggles stereo viewing. By default each
+object is split in a blue and a red part, that should be viewed with a pair
+of red(left)/blue(right) glasses. Red/green glasses will probably work too.
+Crosseyed viewing is also available if selected by <bf/stereo cross/.
+See <bf/stereo/ and <bf/focallen/ in the View Commands section. 
+
+<sect1> Example 4: subsetting
+<p>
+In the <tt/data/ directory, run
+<verb>
+  partiview hip.cf
+</verb>
+One of the data fields for these stars is the <it/B-V/ color, <tt/colorb_v/,
+abbreviatable to just <tt/color/.  Look at just the bluest stars: try
+<verb>
+  thresh color &lt; -.1
+</verb>
+Back off to a large distance (drag with right mouse button,
+and drag the <tt/logslum lum/ slider to brighten)
+and look at the distribution of these blue stars.  The
+Orion spiral-arm spur, extending generally along the +Y (green)
+axis, has lots of them.  Now look at more reddish stars,
+those with .5 &lt;= <it/B-V/ &lt;= 1.5, with:
+<verb>
+  thresh color  .5  1.5
+</verb>
+These are much more uniformly distributed in the galactic plane.
+Return to seeing all stars, with:
+<verb>
+  see all
+</verb>
+or re-view the threshold-selected subset (reddish stars) with
+<verb>
+  see thresh
+</verb>
+or its complement with
+<verb>
+  see -thresh
+</verb>
+
+<!--
+  -->
+
+<p>
+
+<sect> Commands
+
+<p>
+There are two types of commands in <tt/partiview/: 
+Control Commands and Data Commands.
+Probably the most visible difference between the two is that every Control
+Command returns feedback to the user, whereas Data Commands
+are interpreted without comment unless an error occurs.
+
+Some situations, e.g. the command-entry text box, expect to receive
+Control Commands; others, e.g. files (.cf, .speck, etc.) named on
+the command line or specified by <tt/read/ or <tt/include/ commands,
+are expected to contain Data Commands.
+
+However, it is always possible to enter a Data Command
+where a Control Command is expected,
+using the <tt/add/ command prefix, e.g. you could type in the text box:
+<tscreen><code>
+  add 0 0 0 text The Origin
+</code></tscreen>. Likewise, a Control Command
+may be given where data is expected, as in a data or .cf file,
+using the <tt/eval/ prefix:
+<tscreen><code>
+  1 0 0 text X=1
+  eval bgcolor 0.3 0.2 0.1
+</code></tscreen>
+
+See also the previous <bf/starlab/ example.
+
+<p>
+
+<!-- 
+	Before we explain the two types of Commands in
+	more detail, a few other concepts are needed:
+-->
+
+
+<!--  
+-->
+
+<p>
+
+<sect1> Control Commands
+<p>
+
+(see partibrains.c::specks_parse_args)
+<p>
+Control Commands are accepted in the Command window, and in some other contexts.
+Generally, <tt/partiview/ gives a response to every Control Command,
+reporting the (possibly changed) status.
+<p>
+Typically, if parameters are omitted, the current state is reported.
+<p>
+Some commands apply to particles in the current group (see Object group commands);
+others affect global things, such as time or display settings.
+<p>
+Data Commands can also be given, if prefixed with <tt/add/.
+
+
+<sect1>I/O Control Commands
+<p>
+
+<descrip>
+<tag>
+read <it/specks-file/
+</tag>
+Read a file containing Data Commands (typical suffix <tt/.cf/ or <tt/.speck/).
+
+<!--  include
+NOTYET (would read a file containing control commands)
+ -->
+
+<tag>
+async <it/unix-command/
+</tag>
+Run an arbitrary unix command (invoked via /bin/sh) as a subprocess of <tt/partiview/.
+Its standard output is interpreted as a stream of control commands.
+Thus <tt/partiview/ can be driven externally, e.g. to record an animation
+(using the <tt/snapshot/ command), or to provide additional GUI controls.
+Several <tt/async/ commands can run concurrently. 
+Examples are given later. Warning: you cannot interrupt a started command,
+short of hitting ESC to exit partiview.
+
+<tag>
+add <it/data-command/
+</tag>
+Enter a Data Command where a Control Command is expected,
+e.g. in the text input box.  For example,
+<verb>
+  add 10 15 -1 text blah
+</verb>
+adds a new label "blah" at 10 15 -1, or
+<verb>
+  add kira myrun.out
+</verb>
+loads a kira (starlab) output file.
+
+<tag>
+eval <it/control-command/
+</tag>
+Processes that control command just as if the <tt/eval/ prefix weren't there.
+Provided for symmetry: wherever either a control command or a data command
+is expected, entering <tt/eval/ <it/control-command/ ensures that it's
+taken as a control command.
+
+
+<tag>
+add filepath (data-command)
+</tag>
+Determines the list of directories where all data files, color maps, etc.
+are sought.  See the <tt/filepath/ entry under
+<!-- ref id="datacommands" name="Data Commands" --> Data Commands.
+
+
+</descrip>
+
+<sect1>Object Group Control Commands
+<p>
+<tt/Partiview/ can load multiple groups of particles,
+each with independent display settings, colormaps, etc.
+When more than one group is loaded, the Group Row appears on the GUI,
+with one toggle-button for each group.  Toggling the button turns
+display of that group on or off.  Right-clicking turns the group unconditionally on,
+and selects that group as the current one for other GUI controls.
+<p>
+Many Control Commands apply to the <it/currently selected/ group.
+<p>
+Groups always have names of the form g<it/N/ for some small positive <it/N/;
+each group may also have an alias.
+
+<descrip>
+<tag>
+g<it/N/ </tag>
+Select group g<it/N/.  Create a new group if it doesn't already exist.
+
+<tag>
+g<it/N/=<it/alias/ </tag>
+Assign name <it/alias/ to group g<it/N/.
+Note there must be no blanks around the <tt/=/ sign.
+
+<tag>
+object <it/objectname/
+</tag>
+Likewise, select object <it/objectname/, which may be either an alias name
+or g<it/N/.  
+
+<tag>
+g<it/N/ <it/control-command/
+</tag>
+
+<tag>
+object <it/objectname/ <it/control-command/
+</tag>
+Either form may be used as a <it/prefix/ to any control command
+to act on the specified group, e.g. <tt/object fred poly on/
+
+<tag>
+gall <it/control-command/
+</tag>
+Invoke the given <it/control-command/ in all groups.
+For example, to turn display of group 3 on and all others off, use:
+<tscreen><verb>
+gall off
+g3 on
+</verb></tscreen>
+
+<tag>
+on
+</tag>
+
+<tag>
+enable
+</tag>
+Either one will
+enable the display of the currently selected group (as it is by default).
+
+<tag>
+off
+</tag>
+
+<tag>
+disable
+</tag>
+Either one will turn off the display of the current group.
+
+</descrip>
+
+<sect1>View Control commands
+<p>
+View commands affect the view; they aren't specific to data groups.
+
+<descrip>
+<tag>
+fov <it/float/
+</tag>
+Angular field of view (in degrees) in Y-direction.
+
+<tag>
+cen[ter] <it/X Y Z/ [<it/RADIUS/]
+</tag>
+<!-- int[erest] <it/X Y Z/ [<it/RADIUS/] -->
+Set point of interest.  This is the center of rotation in
+<tt/[o]rbit/ and <tt/[r]otate/ modes.  Also, in <tt/[o]rbit/ mode,
+translation speed is proportional to the viewer's distance from this point.
+The optional <it/RADIUS/ (also set by <tt/censize/) determines the size
+of the marker crosshair, initially 1 unit.
+
+<tag>
+cen[ter] [<it/X Y Z/ [<it/RADIUS/]]
+int[erest] [<it/X Y Z/ [<it/RADIUS/]]
+</tag>
+Set point of interest.  This is the center of rotation in
+<tt/[o]rbit/ and <tt/[r]otate/ modes.  And, in <tt/[o]rbit/ mode,
+translation speed is proportional to the viewer's distance from this point.
+The optional <it/RADIUS/ (also set by <tt/censize/) determines the size
+of the marker crosshair, initially 1 unit.
+<p>
+****  why is center/interest commented out in the first example. Originally
+this command was documented twice, the first one has /interest commented out.
+
+<tag>
+censize [<it/RADIUS/]
+</tag>
+Set size of point-of-interest marker.
+
+<tag>
+where  <it/(also)/  w
+</tag>
+Report the 3-D camera position and forward direction vector.
+
+<tag>
+clip <it/NEAR/ <it/FAR/
+</tag> 
+Clipping distances.  The computer graphics setup always requires
+drawing only objects in some finite range of distances in front of the
+viewpoint.  Both values must be strictly positive, and their ratio
+is limited; depending on the graphics system in use, distant objects
+may appear to blink if the <it/FAR//<it/NEAR/ ratio exceeds 10000 or so.
+
+To set the far clip range without changing the near, use a non-numeric
+near clip value, e.g. <tt/clip - 1000/.
+
+<!--
+<tag>
+ortho
+</tag>
+NOTYET
+-->
+
+<tag>
+jump [<it/X Y Z/] [<it/Rx Ry Rz/]
+</tag>
+Get or set the current position (XYZ) and/or viewing (RxRyRz) angle.
+
+<tag>
+readpath
+</tag>
+Read a Wavefront (<tt/.wf/) file describing a path through space.
+
+<tag>
+rdata
+</tag>
+Synonym for readpath.
+
+<tag>
+play <it/speed/[f]
+</tag>
+Play the currently loaded (from <tt/readpath//<tt/rdata/) camera animation
+path, at <it/speed/ times normal speed,
+skipping frames as needed to keep up with wall-clock time.
+(Normal speed is 30 frames per second.)
+With "f" suffix, displays every <it/speed/-th frame, without regard to real
+time.
+
+<tag>
+frame [<it/frameno/]
+</tag>
+Get or set the current frame the <it/frameno/-th.
+
+<tag>
+update		
+</tag>
+Ensures the display is updated, as before taking a snapshot.
+Probably only useful in a stream of control commands from an <tt/async/
+subprocess.
+
+<tag>
+winsize [<it/XSIZE/ [<it/YSIZE/]]
+</tag>
+
+<tag>
+winsize <it/XSIZE/x<it/YSIZE/+<it/XPOS/+<it/YPOS/
+</tag>
+Resize graphics window.  With no arguments, reports current size.
+With one argument, resizes to given width, preserving aspect ratio.
+With two arguments, reshapes window to that height and width.
+With complete X geometry specification (no embedded spaces),
+e.g. <tt/winsize 400x350+20-10/,
+also sets position of graphics window, with +X and +Y measured from
+left/top, -X and -Y measured from right/bottom of screen.
+
+<tag>
+detach [full|hide]  [<it/+XPOS+YPOS/]
+</tag>
+Detach graphics window from GUI control strip and optionally
+specify position of control strip.  With <tt/full/ or <tt/hide/,
+makes graphics window full-screen with GUI visible or hidden, respectively.
+With neither <tt/full/ nor <tt/hide/, the graphics window
+is detached but left at its current size.
+
+The <it/+XPOS+YPOS/ is a window position in X window geometry style,
+so e.g. <tt/detach full -10+5/ places the GUI near the
+upper right corner of the screen, 10 pixels in from the right
+and 5 pixels down from the top edge.
+
+If you don't mind typing blindly, it's still possible to enter
+text-box commands even with the controls hidden;
+press the <it>Tab</it> key before each command to ensure that
+input focus is in the text box.
+Use <it>Tab</it><tt/detach full/<it>Enter</it>
+to un-hide a hidden control strip.
+
+<tag>
+bgcolor <it/R G B/
+</tag>
+Set window background color (three R G B numbers or one grayscale value).
+
+
+<tag>
+focallen <it/distance/
+</tag>
+Focal length: distance from viewer to a typical object of interest.
+This affects stereo display (see below) and navigation: the speed of
+motion in <tt/[t]ranslate/ and <tt/[f]ly/ modes is proportional to this
+distance.
+
+<tag>
+stereo [on|off|redcyan|glasses|cross|left|right] [<it/separation/]
+</tag>
+Stereo display.  Also toggled on/off by typing <tt/'s'/ key in graphics window.
+Where hardware allows it, <tt/stereo glasses/ selects
+CrystalEyes-style quad-buffered stereo.  All systems should be capable of
+<tt/stereo redcyan/, which requires wearing red/green or red/blue glasses,
+and of <tt/cross/ (crosseyed), which splits the window horizontally.
+<tt/left/ and <tt/right/ show just that eye's view,
+and may be handy for taking stereo snapshots.
+
+Useful <it/separation/ values might be 0.02 to 0.1, or -0.02 to -0.1 to swap
+eyes.  See also <tt/focallen/ command, which gives the distance to
+a typical object of interest: left- and right-eye images of an object
+at that distance will coincide on the screen.
+
+Virtual-world eyes will be separated by distance
+2 * <it/focallen * separation/, with convergence angle
+2 * <tt/arctan(/<it/separation/<tt/)/.
+
+See also the <tt/winsize/ and <tt/detach/ commands
+for control over graphics window size and placement.
+
+Beware: some systems which support hardware ("glasses")
+stereo also require that the display be set to a
+stereo-capable video mode.  Partiview does not do this
+automatically.  For example, on stereo-capable SGI Irix systems,
+you may need to type (to a unix shell)
+<tt>/usr/gfx/setmon -n 1024x768_96s</tt> to allow
+stereo viewing and something like <tt>/usr/gfx/setmon -n 72</tt>
+to revert.  Otherwise, turning partiview's stereo on
+will just show the left eye's view -- displacing the viewpoint
+but nothing else.
+
+<tag>
+snapset [<tt/-n/ <it/FRAMENO/] <it/FILESTEM/ [<it/FRAMENO/]
+</tag>
+Set parameters for future <tt/snapshot/ commands.
+<it/FILESTEM/ may be a printf format string with frame number as
+argument, e.g. <tt>snapset pix/%04d.ppm</tt>, generating image names
+of <tt>pix/0000.ppm</tt>, <tt>pix/0001.ppm</tt>, etc.
+If <it/FILESTEM/ contains no % sign, then <tt/.%03d.ppm.gz/ is
+appended to it, so <tt>snapset ./pix/fred</tt>
+yields snapshot images named <tt>./pix/fred.000.ppm.gz</tt> etc.
+<p>
+Frame number <it/FRAMENO/ (default 0) increments with each snapshot taken.
+<p>
+
+<tag>
+snapshot [<it/FRAMENO/ | <it/FILENAME/]
+</tag>
+Capture a snapshot image of the current view.
+
+Either give <tt/snapshot/ an explicit filename,
+or else specify a file format string with <tt/snapset/
+and then let <tt/snapshot/ fill in the frame number.
+With neither <it/FRAMENO/ nor <it/FILENAME/,
+<tt/snapset/ adds one to the previous frame number.
+
+If <it/FILENAME/ contains an <tt/@/ sign, then snapshot records a stereo pair of images, using current stereo, focallen, etc. settings.   The left-eye and right-eye views are saved in files with any <tt/@/ replaced with <tt/L/ and <tt/R/ respectively.
+
+If built with the JPEG and/or PNG libraries, <tt/partiview/ can write those types of images directly (determined by suffix: jpg, jpeg, png, ppm).
+Writing other image types, it generally invokes the ImageMagick program <tt/convert(1)/,
+which must be installed and be on the user's $PATH.
+
+<tt/Convert/ is never needed if the <tt/snapset/ <it/FILESTEM/ ends in
+<tt/.ppm.gz/ (invokes gzip rather than convert) or <tt/.ppm/
+(no external program required).
+
+</descrip>
+
+
+<sect1>Particle Display Control Commands
+<p>
+These commands affect how particles (in the current group) are
+displayed.
+
+<descrip>
+<tag>
+psize <it/scalefactor/
+</tag>
+All particle luminosities (as specified by <tt/lum/ command)
+are scaled by the product of two factors:
+a <it/lumvar/-specific factor given by <tt/slum/,
+and a global factor given by <tt/psize/.
+So the intrinsic brightness of a particle is
+<it/value-specified-by-/<tt/lum/
+* <it/slum-for-current-lumvar/
+* <it/psize-scalefactor/.
+
+<tag>
+slum <it/slumfactor/
+</tag>
+Data-field specific luminosity scale factor, for current choice of
+<it/lumvar/ as given by the <tt/lum/ command.
+A <it/slumfactor/ is recorded independently for each data field, so
+if data fields <tt/mass/ and <tt/energy/ were defined, one might say
+<tscreen><verb>
+lum mass
+slum 1000
+lum energy
+slum 0.25
+</verb></tscreen>
+having chosen each variable's <it/slumfactor/ for useful display,
+and then freely switch between <tt/lum mass/ and <tt/lum energy/
+without having to readjust particle brightness each time.
+
+<!--  Just describe "slum"
+<tag>
+scale-lum
+</tag>
+ -->
+
+<tag>
+ptsize <it/minpixels/ <it/maxpixels/
+</tag>
+Specifies the range of <it/apparent/ sizes of points,
+in pixels.  Typical values might be <tt/ptsize 0.1 5/.
+The graphics system may silently impose an upper limit
+of about 10 pixels.
+
+<!-- DEPRECATED COMMAND
+<tag>
+pointsize 
+</tag>
+-->
+
+<tag>
+poly [on|off]
+</tag>
+Display polygons, or don't.
+
+
+<tag>
+polysize [<it/scalefactor/]
+</tag>
+Multiplier for polygon size.  Default is zero (!), so you must
+set polysize to something else before polygons will show up.
+
+<tag>
+polylumvar [<it/attrname/ | <tt/point-size/] [<tt/area/ | <tt/radius/]
+</tag>
+Choose which attribute determines the radius of a particle's polygon.
+By default, it is <tt/point-size/, a pseudo-attribute which varies with
+the brightness of points (so adjusting the slum slider scales polygons too).
+
+Each polygon's 3-D radius is the <tt/polysize/ <it/scalefactor/ times its particle's
+given attribute (whether an actual particle attribute or <tt/point-size/).  Or,  
+if the <tt/area/ keyword is specified, then the radius is the square root
+of attribute * scalefactor.   <tt/area/ is useful if the attribute represents
+a luminosity; in that case, the polygon total brightness (which is proportional
+to its screen area) becomes proportional to the attribute / distance^2.
+
+<tag>
+polymin <it/minradius/ [<it/maxradius/]
+</tag>
+Specify a minimum screen radius for polygons, in pixels.
+If smaller than this, they are not drawn.
+
+<tag>
+vec [<tt/off|on|arrow/]
+</tag>
+Draw a vector at each point, determined by triple of attributes specified by <tt/vecvar/ data command.
+With "arrow", draws an arrowhead on each vector, with 3-D size equal to
+the vector's length times the 'arrowscale' (second parameter to <tt/vecscale/ command).  The arrowhead always
+lies in the screen plane, so its size gives a cue to the vector's
+true 3-D length (e.g. when the vector is viewed nearly end-on,
+even a small arrowhead can look longer than the vector does).
+This also means that arrowheads flip orientation when a vector
+passes through being seen nearly end-on.
+<p>
+Example:
+<verb>
+datavar 0 mass
+datavar 1 vx
+datavar 2 vy
+datavar 3 vz
+
+vecvar vx
+
+eval vec on
+eval vecscale 0.5
+
+...
+eval vec arrow
+eval vecscale 0.5 0.125   # show arrow at tip of each vector
+</verb>
+
+<tag>
+vecscale [<it/scale/ <it/arrowscale/]
+</tag>
+Set scale of vectors drawn by vec, as multiple of the triple of attributes specified by data-command <tt/vecvar/.
+
+Arrowhead size is set by a new second parameter to "vecscale".
+Defaults are 1.0 and 0.25, meaning that arrowheads are a quarter the main vector's length.
+
+<tag>
+vecalpha [<it/alpha/]
+</tag>
+Set the opacity of all vectors.   If too many are overlapping, a small value (e.g. <it/vecalpha 0.1/) will help see through more of them.
+
+
+<tag>
+color
+</tag>
+   Specify how particles are colored.
+   Generally, a linear function of some data field of each particle
+   becomes an index into a colormap (see <tt/cmap/, <tt/cment/).
+    <descrip>
+    <tag> color  <it/colorvar/  [<it/minval maxval/] </tag>
+	Use data field <it/colorvar/ (either a name as set by <tt/datavar/
+	or a 0-based integer column number) to determine color.
+	Map <it/minval/ to color index 1, and <it/maxval/ to
+	the next-to-last entry in the colormap (<it/Ncmap-2/).
+	The 0th and last (<it/Ncmap-1/) colormap entry are used for
+	out-of-range data values.
+
+	If <it/minval/ and <it/maxval/ are omitted, the actual range of
+	values is used.
+	
+    <tag> color  <it/colorvar/  exact  [<it/baseval/] </tag>
+	Don't consider field <it/colorvar/ as a continuous variable;
+	instead, it's integer-valued, and mapped one-to-one with
+	color table slots.  Data value <it/N/ is mapped to
+	color index <it/N+baseval/.
+
+    <tag> color  <it/colorvar/  -exact </tag>
+	Once the <tt/exact/ tag is set (for a particular data-field),
+	it's sticky.  To interpret that data field as a continuous, scalable
+	variable again, use <tt/-exact/.
+	
+    <tag> color  const  <it/R G B/ </tag>
+	Show all particles as color <it/R G B/, each value in range 0 to 1,
+	independent of any data fields.
+    </descrip>
+
+    Note: if <it/colorvar/ is named <tt/rgb565/ or <tt/rgb888/, it is interpreted specially: as a 16-bit (rgb565) or 24-bit (rgb888) integer containing the red, green and blue color values in 5-6-5 or 8-8-8-bit encoding.   Red is most significant.
+
+<tag>
+lum
+</tag>
+   Specify how particles' intrinsic luminosity is computed:
+   a linear function of some data field of each particle.
+   <descrip>
+   <tag> lum <it/lumvar/  [<it/minval maxval/] </tag>
+	Map values of data field <it/lumvar/ (<tt/datavar/ name or
+	field number) to luminosity.
+	The (linear) mapping takes field value <it/minval/ to
+	luminosity 0 and <it/maxval/ to luminosity 1.0.
+	<p>
+	If <it/minval/ and <it/maxval/ are omitted,
+	the actual range of values is mapped to the luminosity range
+	0 to 1.
+	<p>
+	Note that the resulting luminosities are then scaled by
+	the <tt/psize/ and <tt/slum/ scale factors, and further
+	scaled according to distance as specified by <tt/fade/, to compute
+	apparent brightness of points.
+
+   <tag> lum const <it/L/ </tag>
+	Specify constant particle luminosity <it/L/ independent of
+	any data field values.
+   </descrip>
+
+<tag>
+fade [planar|spherical|linear <it/refdist/|const <it/refdist/]
+</tag>
+Determines how distance affects particles' apparent brightness (or "size").
+The default <tt/fade planar/ gives 1/r^2 light falloff, with r measured
+as distance from the view plane.  <tt/fade spherical/ is also 1/r^2,
+but with r measured as true distance from the viewpoint.
+<tt/fade linear/ <it/refdist/ gives 1/r light falloff -- not physically
+accurate, but useful to get a limited sense of depth.
+<tt/fade const/ <it/refdist/ gives constant apparent brightness
+independent of distance, and may be appropriate for orthographic views.
+
+The <it/refdist/ for linear and const modes is that distance <it/r/
+at which apparent brightness should match that in the 1/r^2 modes --
+a distance to a "typical" particle.
+
+<tag>
+labelmin  <it/minpixels/
+</tag>
+Labels computed to be smaller than this screen size (pixels) are suppressed.
+
+<tag>
+labelsize <it/scalefactor/
+</tag>
+
+<tag>
+lsize <it/scalefactor/
+</tag>
+lsize (alias labelsize) sets the 3-D height of labels.  If the text was created with a
+<tt/text -size /<it/textsize/ option, the scalefactor is multiplied by that to determine
+the 3-D size.
+
+<tag>
+point[s]   [on|off]
+</tag>
+Turn display of points on or off.  With no argument, toggles display.
+
+<tag>
+poly[gons]  [on|off]
+</tag>
+Turn display of points on or off.  With no argument, toggles display.
+
+<tag>
+texture [on|off]
+</tag>
+Turn display of textures on or off.  With no argument, toggles.
+
+<tag>
+label[s] [on|off]
+</tag>
+Turn display of label text on or off.  With no argument, toggles.
+
+
+<tag>
+txscale	 <it/scalefactor/
+</tag>
+Scale size of all textures relative to their polygons.
+A scale factor of 0.5 (default) make the texture square
+just fill its polygon, if <tt/polysides/ is 4.
+
+<tag>
+polyorivar
+</tag>
+Report setting of <tt/polyorivar/ data-command, which see.
+
+<tag>
+texturevar
+</tag>
+Report setting of <tt/texturevar/ data-command, which see.
+
+<tag>
+laxes  [on|off]
+</tag>
+Toggle label axes.  When on, and when labels are displayed,
+shows a set of red/green/blue (X/Y/Z) axes to indicate orientation.
+
+<tag>
+polyside(s)
+</tag>
+Number of sides a polygon should have.  Default 11, for fairly round
+polygons.  For textured polygons, <tt/polysides 4/ might do as well,
+and be slightly speedier.
+
+<tag>
+fast [on|off]
+</tag>
+see also <tt/ptsize/
+
+<tag>
+ptsize  <it/minpixels/ [<it/maxpixels/]
+</tag>
+Specifies range of apparent (pixel) size of points.
+Those with computed sizes (based on luminosity
+and distance) smaller than <it/minpixels/ are
+randomly (but repeatably) subsampled -- i.e. some
+fraction of them are not drawn.  Those computed to be
+larger than <it/maxpixels/ are drawn at size
+<it/maxpixels/.
+
+<tag>
+gamma <it/displaygamma/
+</tag>
+Tells the particle renderer how the display + OpenGL
+relates image values to visible lightness.
+You don't need to change this, but may adjust it
+to minimize the brightness glitches when particles change size.
+Typical values are <tt/gamma 1/ through <tt/gamma 2.5/ or so.
+Larger values raise the apparent brightness of dim things.
+
+<tag>
+alpha <it/alpha/
+</tag>
+Get or set the alpha value, in the range 0 to 1; it determines
+the opacity of polygons.
+
+<tag>
+speed
+</tag>
+For time-dependent data, advance datatime by this many time units
+per wall-clock second.
+
+<tag>
+step [<it/timestep/]
+</tag>
+For time-varying data, sets current timestep number.
+Real-valued times are meaningful for some kinds of data including those
+from Starlab/kira; for others, times are rounded to nearest integer.
+If running, <tt/step/ also stops datatime animation.  (See <tt/run/.)
+
+<tag>
+step [+|-]<it/deltatimestep/
+</tag>
+If preceded with a plus or minus sign, adds that amount to current time.
+
+
+(note that <tt/fspeed/ has been deprecated)
+
+<tag>
+run
+</tag>
+Continue a stopped animation (see also <tt/step/).
+
+<tag>
+tfm [-v] [<it/numbers.../]
+</tag>
+Object-to-world transformation. 
+May take 1, 6, 7, 9 or 16 parameters: either 
+<it/scalefactor/,
+or <it/tx ty tz rx ry rz /<it/scalefactor/>],
+or 16 numbers for 4x4 matrix,
+or 9 numbers for 3x3 matrix.
+See <it/Coordinates and Coordinate Transformations/.
+
+With no numeric parameters, reports the current object-to-world transform.
+Use <tt/tfm -v/ to see the transform and its inverse in several forms.
+
+<tag>
+move [g<it/N/] {on|off}
+</tag>
+Normally, navigation modes <tt/[r]otate/ and <tt/[t]ranslate/
+just adjust the viewpoint (camera).  However,
+if you turn <tt/move on/, then <tt/[r]otate/ and <tt/[t]ranslate/
+move the currently-selected object group instead,
+e.g. to adjust its alignment relative to other groups.
+(<tt/[o]rbit/ and <tt/[f]ly/ modes always move the camera.)
+
+To indicate that <tt/move/ mode is enabled,
+the control strip shows the selected group's name in
+bold italics, as <bf><it>[g3]</it></bf>.
+Use <tt/move off/ to revert to normal.
+The <tt/tfm/ command reports the current object-group-to-global-world
+transformation.
+
+<tag>
+fwd
+</tag>
+
+<tag>
+datawait   on|off
+</tag>
+For asynchronously-loaded data (currently only <tt/ieee/ data command),
+say whether wait for current data step to be loaded.
+(If not, then keep displaying previous data while loading new.)
+
+<tag>
+cmap    <it/filename/
+</tag>
+Load (ascii) filename with RGB values, for coloring particles.
+The <tt/color/ command selects which data field is mapped to color index
+and how.
+
+Colormaps are text files, beginning with a number-of-entries
+line and followed by R G B or R G B A entries one per line;
+see the <it/Colormaps/ section.
+
+<tag>
+vcmap -v <it/fieldname/  <it/filename/
+</tag>
+Load colormap as with <tt/cmap/ command.  But use this colormap
+only when the given data field is selected for coloring.
+Thus the <tt/cmap/ color map applies to all data fields for which
+no <tt/vcmap/ has ever been specified.
+
+<tag>
+cment  <it/colorindex/  [<it/R G B/]
+</tag>
+Report or set that colormap entry.
+
+<tag>
+rawdump <it/dump-filename/
+</tag>
+All particle attributes (not positions though) 
+are written to a <it/dump-filename/.  Useful for debugging.
+Warning: it will happily overwrite an existing file with that name.
+
+<tag>
+warp [on|off]
+</tag>
+Enable, disable, or report the status of any <tt/warp/ data-command set up for the current group.
+If it exists, particles's positions can change with time, in a handful of canned ways
+built into the <tt/warp/ command.  See the <tt/warp/ entry under Data Commands.
+
+</descrip>
+
+<sect1>Particle subsetting & statistics
+<p>
+
+<descrip>
+
+<tag>
+clipbox ...
+</tag>
+see <tt/cb/ below.
+
+<tag>
+cb ....
+</tag>
+Display only a 3D subregion of the data -- the part lying within the clipbox.
+    <descrip>
+    <tag>cb <it/xmin ymin zmin  xmax ymax zmax/ </tag> <p>
+	Specified by coordinate ranges.
+        Note only spaces are used to separate the 6 numbers.
+    <tag>cb <it/xcen,ycen,zcen xrad,yrad,zrad/  </tag>
+	Specified by center and "radius" of the box.
+	Note no spaces after the commas!
+    <tag>cb <it/xmin,xmax ymin,ymax zmin,zmax/  </tag>
+        Specified by coordinate ranges.
+    <tag>cb <tt/off/ </tag><p>
+	Disable clipping.  The entire dataset is again visible.
+    <tag>cb <tt/on/  </tag><p>
+	Re-enable a previously defined clipbox setting. It will also
+        display the clipbox again
+    <tag>cb <tt/hide/  </tag><p>
+        Hide the clipbox, but still discard objects whose centers
+	lie outside it.
+    </descrip>
+Note this command does not toggle clipping
+if no arguments given (that would be handy
+and more in line with similar commands). 
+If no arguments given, it reports the current clipbox.
+
+<tag>
+thresh
+</tag>
+   Display a subset of particles, chosen by the value of
+   some data field.  Each <tt/thresh/ command overrides
+   settings from previous commands, so it cannot be used to
+   show unions or intersections of multiple criteria.
+   For that, see the <tt/only/ command.  However, unlike <tt/only/,
+   the <tt/thresh/ criterion applies to time-varying data.
+   <descrip>
+   <tag>thresh <it/field/ <it/minval/ <it/maxval/ </tag>
+	Display only those particles where
+	<it/minval/ &lt;= field <it/field/ &lt;= <it/maxval/.
+	The <it/field/ may be given by name (as from <tt/datavar/)
+	or by field number.
+   <tag>thresh <it/field/ <tt/&lt;/<it/maxval/ </tag> <p>
+   <tag>thresh <it/field/ <tt/&gt;/<it/minval/ </tag>
+	Show only particles where <it/field/ is &lt;=
+	or &gt;= the given threshold.
+   <tag>thresh [off|on]</tag>
+	Disable or re-enable a previously specified threshold.
+   </descrip>
+
+<tag>
+only=  <it/datafield/  <it/value/  <it/minvalue-maxvalue/  &lt;<it/value/ &gt;<it/value/ ...
+</tag>
+<tag>
+only+  <it/datafield/  <it/value/  <it/minvalue-maxvalue/  &lt;<it/value/ &gt;<it/value/ ...
+</tag>
+<tag>
+only-  <it/datafield/  <it/value/  <it/minvalue-maxvalue/  &lt;<it/value/ &gt;<it/value/ ...
+</tag>
+Scans particles (in the current timestep only!), finding those where
+<it/datafield/ has value <it/value/, or has a value in range
+<it/minvalue/ &lt;= value &lt;= <it/maxvalue/, or whatever.
+Multiple value-ranges may be specified to select the union of several sets.
+The resulting set of particles is assigned to (<tt/only=/), added to
+(<tt/only+/) or subtracted from (<tt/only-/) the <tt/thresh/ selection-set.
+Also display just particles in that selection-set, as if <tt/see thresh/
+had been typed.
+
+The net effect is illustrated by these examples:
+<descrip>
+  <tag>only= type 1-3 5</tag>
+	Show only particles of type 1, 2, 3 or 5.
+  <tag>only- mass &lt;2.3  &gt;3.5</tag>
+	After the above command, shows only the subset
+	of type 1/2/3/5 particles AND have mass between 2.3 and 3.5.
+	(Note that to take the intersection of two conditions,
+	you must subtract the complement of the latter one.
+	Maybe some day there'll be an <tt/only&amp;/.
+</descrip>
+
+<tag>
+see  <tt/selexpr/
+</tag>
+Show just those particles in the selection-set <tt/selexpr/.
+Predefined set names are <tt/all/, <tt/none/, <tt/thresh/ and <tt/pick/,
+and other names may be defined by the <tt/sel/ command.
+The default is <tt/see all/.  Using the <tt/thresh/ or <tt/only/
+commands automatically switch to displaying <tt/see thresh/.
+
+Note that you can see the complement of a named set,
+e.g. all except the <tt/thresh/-selected objects, with
+<tt/see -thresh/.
+
+<tag>
+sel <tt/selname = selexpr/
+</tag>
+Compute a logical combination of selection-sets and assign them
+to another such set.  The set membership is originally assigned by
+<tt/thresh/ or <tt/only/ commands.  Yeah, I know this doesn't make sense.
+Need a separate section to document selection-sets.
+
+<tag>
+sel <tt/selexpr/
+</tag>
+Count the number of particles in the selection-set <tt/selexpr/.
+
+<tag>
+clearobj
+</tag>
+Erase all particles in this group.  Useful for reloading on the fly.
+
+<tag>
+every   <it/N/
+</tag>
+Display a random subset (every <it/N/-th) of all particles.
+E.g. <tt/every 1/ shows all particles, <tt/every 2/ shows about half of them.
+Reports current subsampling factor, and the current total number of particles.
+
+<tag>
+hist <it/datafield/ [-n <it/nbuckets/] [-l] [-c] [-t] [<it/minval/] [<it/maxval/]
+</tag>
+Generates a (numerical) histogram of values of <it/datafield/,
+which may be a named field (as from <tt/datavar/) or a field index.
+Divides the value range (either <it/minval/..<it/maxval/
+or the actual range of values for that field) into <it/nbuckets/ 
+equal buckets (11 by default).  Uses logarithmically-spaced
+intervals if <tt/-l/ (so long as the data range doesn't include zero).
+If a clipbox is defined, use <tt/-c/ to count only
+particles within it.  If a <tt/thresh/ or <tt/only/
+subset is defined, use <tt/-t/ to count only the chosen subset.
+
+<tag>
+bound  [w]
+</tag>
+Reports 3D extent of the data.  With <tt/w/, reports it in
+world coordinates, otherwise in object coordinates.
+
+<tag>
+datavar
+</tag>
+
+<tag>
+dv
+</tag>
+Report names and value ranges (over all particles in current group)
+of all named data fields.
+
+
+</descrip>
+
+<sect1>Boxes
+<p>
+<descrip>
+<tag>
+showbox  <it/list of integer box level numbers.../
+</tag>
+
+<tag>
+hidebox  <it/list of integer box level numbers.../
+</tag>
+
+<tag>
+box[es] [off|on|only]
+</tag>
+Turn box display off or on; or display boxes but hide all particles.
+
+<tag>
+boxcmap <it/filename/
+</tag>
+Color boxes using that colormap.
+Each box's level number (set by <tt/-l/ option of <tt/box/ data-command,
+default 0) is the color index.
+
+<tag>
+boxcment  <it/colorindex/  [<it/R G B/]
+</tag>
+Get or set the given box-colormap index.  E.g. <tt/boxcment 0/
+reports the color of boxes created with no <tt/-l/ specified.
+
+<tag>
+boxlabel [on|off]
+</tag>
+Label boxes by id number
+(set by <tt/-n/ option of <tt/box/ data-command).
+
+<tag>
+boxaxes [on|off]
+</tag>
+Toggle or set box axes display mode.
+
+<tag>
+boxscale [float] [on|off] 
+</tag>
+
+<tag>
+gobox <it/boxnumber/
+</tag>
+
+<tag>
+goboxscale
+</tag>
+
+<tag>
+menu fmenu
+</tag>
+
+<p>
+<tscreen><verb>
+
+			BEGIN CAVEMENU
+	pos P1 P2
+	wall P1
+	hid [P1]
+	show [P1]
+	h  [P1]
+	demandfps [P1]
+	font
+	help
+	?
+			END CAVEMENU	
+</verb></tscreen>
+<p>
+
+<tag>
+datascale
+</tag>
+
+</descrip>
+
+<!--------------------------------------------------------------------------- -->
+<sect1> <!-- label id="datacommands" --> Data commands </>
+<p>
+
+(see also partibrains.c::specks_read)
+<p>
+Data Commands can be placed in a data file.
+Lines starting with <tt/#/ will be skipped. 
+<p>
+Control Commands can also be given, if prefixed with the <tt/eval/ command.
+
+<descrip>
+
+<tag>
+read <it/file/ 
+</tag> 
+read a <tt/speck/ formatted file. Recursive, commands can nest. (strtok ok??)
+Note that <tt/read/ is also a Control Command, doing exactly the same thing.
+
+<tag>
+include  <it/file/
+</tag>
+read a <tt/speck/ formatted file.
+
+<tag>
+ieee [-t time] <it/file/
+</tag>
+Read a IEEEIO formatted file, with optional timestep number (0 based).
+Support for this type of data must be explicitly compiled into the program.
+
+<tag>
+kira <it/file/ 
+</tag> 
+read a <tt/kira/ formatted file. See the <tt/kiractl/ Control
+Command to modify the looks of the objects.  Only present if Starlab is compiled
+into partiview.
+
+<tag>
+setenv name value
+</tag>
+Add (or change) a named variable of the environment variables space of
+partiview. Enviroment variables, like in the normal unix shell, can be
+referred to by prepending their name with a $. 
+<it/Note there probably is not an unsetenv command/.
+
+<tag>
+object <it/gN=ALIAS/
+</tag>
+Defines/Selects a particular group number (N=1,2,3....) to an ALIAS. In
+command mode you can use <tt/gN=ALIAS/. Any data following this command
+will now belong to this group.
+
+<tag>
+object <it/ObjectName/
+</tag>
+Select an existing group. Following data will now belong to this group.
+
+<tag>
+sdbvars <it/var/
+</tag>
+Choose which data fields to
+extract from binary sdb files (any of: <tt/mMcrogtxyzSn/) for subsequent
+<tt/sdb/ commands.
+
+<tag>
+sdb [-t time] <it/file/
+</tag>
+Read an SDB (binary) formatted file, with optional timestep number.
+(Default time is latest <tt/datatime/, or 0.)
+
+<tag>
+pb [-t time] <it/file/
+</tag>
+Read a <tt/.pb/ (binary) particle file, with optional timestep number.
+(Default time is latest <tt/datatime/, or 0.)
+A <tt/.pb/ file contains (all values 32-bit integer or 32-bit IEEE float):
+<enum>
+  <item>magic number, 0xFFFFFF98  (int32)
+  <item>byte offset of first particle (int32)
+  <item>number of attributes (int32)
+  <item>sequence of null-terminated attribute name strings,
+	attributename0 \0 attributename1 \0 ...
+  <item>possibly some pad bytes, enough to reach the specified
+	first-particle file offset
+  <item>sequence of particle records,
+	each (number-of-attributes + 4)*4 bytes long:
+	<enum>
+	  <item>particle-id (int32)
+	  <item>particle X, Y, Z (3 float32's) 
+	  <item>particle attributes (number-of-attributes float32's)
+	</enum>
+	ending at the end of the file (i.e. there's no particle-count field).
+</enum>
+Either big- or little-endian formats are accepted; the value of the
+magic number determines endianness of all values in that file.
+
+<tag>
+box[es] <it/..../
+</tag>
+Draw a box, using any of the following formats:
+<p>
+    <descrip>
+    <tag> <tt/xmin ymin zmin  xmax ymax zmax/ </tag> <p>
+    <tag> <tt/xmin,xmax ymin,ymax zmin,zmax/   </tag><p>
+    <tag> <tt/xcen,ycen,zcen xrad,yrad,zrad/  </tag><p>
+    <tag> <tt/[-t time] [-n boxno] [-l level] xcen,ycen,zcen  xrad,yrad,zrad /  </tag><p>
+    </descrip>
+<tt/level/ determines color.
+
+<tag>
+<tt/mesh/ [<tt/-t/ <it/txno/] [<tt/-c/ <it/colorindex/] [<tt/-s/ <it/style/]
+</tag>
+Draw a quadrilateral mesh, optionally colored or textured.
+Following the <bf/mesh/ line, provide a line with the mesh dimensions:
+<screen>
+         nu nv
+</screen>
+
+Following this comes the list of <it/nu/*<it/nv/ mesh vertices,
+one vertex (specified by several blank-separated numbers) per line.
+(Blank lines and comments may be interspersed among them.)
+Note that the mesh connections are implicit:
+vertex number i*nu+j is adjacent to (i-1)*nu+j, (i+1)*nu+j, i*nu+(j-1),
+and i*nu+(j+1).  Each vertex line has three or five numbers:
+the first three give its 3-D position, and if a <tt/-t/ texture was
+specified, then two more fields give its u and v texture coordinates.
+<p>
+
+Options:
+  <descrip>
+    <tag> <tt/-t/ <it/txno/ </tag> Apply texture number <it/txno/ to surface.
+	In this case, each mesh vertex should also include
+	u and v texture coordinates.
+    <tag> <tt/-c/ <it/colorindex/ </tag> Color surface with color from
+	integer cmap entry <it/colorindex/.
+    <tag> <tt/-s/ <it/style/ </tag>
+	Drawing style: <descrip>
+	  <tag> <it/solid/ </tag> filled polygonal surface (default)
+	  <tag> <it/wire/ </tag>  just edges
+	  <tag> <it/point/ </tag> just points (one per mesh vertex)
+	</descrip>
+   </descrip>
+
+<tag>
+<it/Xcen Ycen Zcen/ ellipsoid <it/[options]... [transformation]/
+</tag>
+Draw an ellipsoid, specified by:
+  <descrip>
+  <tag> <tt/Xcen Ycen Zcen/ </tag>  Center position in world coordinates
+  <tag> <tt/-c/ <it/colorindex/ </tag> Integer color index (default -1 => white)
+  <tag> <tt/-s/ <it/style/ </tag>
+	Drawing style: <descrip>
+	  <tag> <it/solid/ </tag> filled polygonal surface (default)
+	  <tag> <it/plane/ </tag> 3 ellipses: XY, XZ, YZ planes
+	  <tag> <it/wire/ </tag> latitude/longitude ellipses
+	  <tag> <it/point/ </tag> point cloud: one per lat/lon intersection
+	</descrip>
+  <tag> <tt/-r/ <it/Xradius/[,<it/Yradius/,<it/Zradius/] </tag>
+	Radius (for sphere) or semimajor axes (for ellipsoid)
+  <tag> <tt/-n/ <it/nlat[,nlon]/ </tag>
+	Number of latitude and longitude divisions.
+	Relevant even for <it/plane/ style, where they determine
+	how finely the polygonal curves approximate circles.
+	Default <it/nlon/ = <it/nlat//2 + 1.
+  <tag> <it/transformation/ </tag>
+	Sets the spatial orientation of the ellipsoid.
+	May take any of three forms:
+	<descrip>
+	  <tag> (nothing) </tag> If absent, the ellipsoid's
+		coordinate axes are the same as the world axes
+		for the group it belongs to.
+	  <tag> 9 blank-separated numbers </tag>
+		A 3x3 transformation matrix T from ellipsoid coordinates
+		to world coordinates, in the sense
+		Pworld = Pellipsoid * T  +  [Xcen, Ycen, Zcen].
+	  <tag> 16 blank-separated numbers </tag>
+		A 4x4 transformation matrix, as above but for the
+		obvious changes.
+	</descrip>
+  </descrip>
+
+<tag>
+waveobj [-time <it/timestep/] [-static] [-texture <it/number/] [-c <it/colorindex/] [-s <it/style/]  <it/file.obj/
+</tag>
+Load a Wavefront-style .obj model.  Material properties are
+ignored; the surface is drawn in white unless <tt/-c/ <it/colorindex/
+in which case it's drawn using that color-table color.
+Also if <tt/-texture/ (alias <tt/-tx/) is supplied,
+the surface is textured using whatever texture coordinates are
+supplied in the .obj file.  The model is displayed at all times
+only if marked <tt/-static/; otherwise it's displayed only
+at the time given by <tt/-time/ <it/timestep/ or by the most recent <it/datatime/.
+
+A subset of the .obj format is accepted:
+<descrip>
+  <tag>v <it/X Y Z/</tag> -- vertex position
+  <tag>vt <it/U V/</tag> -- vertex texture coordinates
+  <tag>vn <it/NX NY NZ/</tag> -- vertex normal
+  <tag>f <it/V1 V2 V3 .../</tag> -- face, listing just position indices for each vertex.
+	The first <tt/v/ line in the .obj file has index 1, etc.
+  <tag>f <it>V1/T1 V2/T2 V3/T3 ...</it></tag> -- face,
+	listing position and texture coordinates for each vertex of the face.
+  <tag>f <it>V1/T1/N1 V2/T2/N2 V3/T3/N3 ...</it></tag> -- face,
+	listing position, texture-coordinate, and normal indices for each vertex.
+</descrip>
+Note that material properties (mtl) are ignored.  Waveobj models are colored
+according to the <tt/-c/ <it/colorindex/ option (integer index
+into the current <tt/cmap/ colormap), or white if no <tt/-c/ is used. 
+If texturing is enabled -- if the .obj model contains <tt/vt/ entries,
+and the <tt/-texture/ option appears, and that numbered texture exists --
+then the given texture color multiplies or replaces the <tt/-c/ color,
+according to the texture options.
+
+
+<tag>
+tfm [camera] <it/numbers.../
+</tag>
+Object-to-world transformation.
+May take 1, 6, 7, 9 or 16 numbers: either 
+<it/scalefactor/ or 
+<it/tx ty tz rx ry rz /[it/scalefactor/]
+or 16 numbers for 4x4 matrix,
+or 9 numbers for 3x3 matrix.
+See <it/Coordinates and Coordinate Transformations/.
+
+Normally the transform is to world coordinates;
+but with optional <tt/camera/ prefix, the object's position
+is specified relative to the camera, useful to place
+legends in a fixed position on the screen.
+In camera coordinates, (0,0,0) is the viewpoint,
+x=y=0 at screen center, and negative z extends forward.
+Try for example
+<verb>
+    tfm camera -3 -3 -20  0 0 0
+    0 0 0 text -size 20  Legend
+</verb>
+
+<tag>
+eval <it/command/
+</tag>
+execute a Control Command.
+
+<tag>
+feed  <it/command/
+</tag>
+Synonym for <tt/eval/.
+
+<tag>
+VIRDIR  <it/command/
+</tag>
+Synonym for <tt/eval/.
+
+<!-- DEPRECATED COMMAND
+<tag>
+ignorefirst, ignorepgc
+</tag>
+-->
+
+<tag>
+filepath <it/path/
+</tag>
+A colon-separated list of directories in which datafiles, color maps, etc.
+will be searched for. If preceded with the <tt/+/ symbol,
+this list will be appended to the current <it/filepath/.
+
+<tag>
+polyorivar <it/indexno/
+</tag>
+By default, when polygons are drawn, they're parallel to the screen plane --
+simple markers for the points.  It's sometimes useful to give each 
+polygon a fixed 3-D orientation (as for disk galaxies).  To do this,
+provide 6 consecutive data fields, representing two 3-D orthogonal unit
+vectors which span the plane of the disk.  Then use
+<tt/polyorivar /<it/indexno/
+giving the data field number of the first of the 6 fields.
+The vectors define the X and Y directions on the disk, respectively --
+relevant if texturing is enabled.
+<p>
+Actually, unit vectors aren't essential; making them different lengths
+yields non-circular polygonal disks. 
+<p>
+If <tt/polyorivar/ is specified for the group, but some polygons should
+still lie in the screen plane, use values <tt/9 9 9 9 9 9/ for those polygons.
+
+<tag>
+vecvar <it/indexno/
+</tag>
+If enabled with the <tt/vec/ a.k.a. <tt/vectors/ control command,
+partiview can draw a vector, or an arrow, based from each point.
+A triple of consecutive data fields define the vector,
+whose length can be scaled with the <tt/vecscale/ command.
+<p>
+Use the <tt/vecvar/ data command to specify the first (x component)
+of the triple of fields.  
+<p>
+See <tt>partiview/data/vectordemo.cf</tt> and <tt>vector.speck</tt> for an example.
+
+<tag>
+texture [-aiAOlmnMDB] <it/txno file.sgi/ 
+</tag>
+    <descrip>
+    <tag> -a(lpha) </tag>
+	A single-channel image would normally be used as luminance data.
+	With <tt/-a/, the image is taken as opacity data instead
+	(GL_ALPHA texture format).
+    <tag> -i(ntensity) </tag>
+	For 1- or 3-channel images, compute the intensity of each pixel
+	and use it to form an alpha (opacity) channel.
+    <tag> -A(dd) </tag>
+	Use additive blending.  This texture will add to, not obscure,
+	the brightness of whatever lies behind it (i.e. whatever is drawn later).
+    <tag> -O(ver) </tag>
+	Use "over" compositing.  This texture will obscure features lying
+	behind it according to alpha values at each point.
+
+<!--
+    <tag> -l(inear)  </tag> <p>
+	
+    <tag> -m(ipmap) </tag>  <p>
+    <tag> -n(earest) </tag>  <p>
+ -->
+
+    <tag> -M(odulate) </tag>
+	Multiply texture brightness/color values by the colormap-determined
+	color of each particle.
+    <tag> -D(ecal) </tag>  <p>
+	The textured polygon's color is determined entirely by the texture,
+	suppressing any colormapped color.
+    <tag> -B(lend) </tag>  <p>
+	Probably not very useful.
+    </descrip>
+
+<tag>
+texturevar <it/field/
+</tag>
+If polygon-drawing and texturing are turned on, use the given
+<it/field/ (datavar name or number) in each particle to select 
+which texture (if any) to draw on its polygon.
+
+<tag>
+coord <it/name ... 16 world-to-coord tfm floats (GL order)/
+</tag>
+
+<tag>
+dataset <it/indexno datasetname/
+</tag>
+Give names to multiple datasets in IEEEIO files (read with <tt/ieee/ command).
+<it/indexno/ is an integer, 0 being the first dataset.
+
+<tag>
+datavar <it/indexno name [minval maxval]/
+</tag>
+Name the variable in data field <it/indexno/.  The first data field has 
+<it/indexno/ 0.
+If provided, <it/minval maxval/ supply the nominal range of that data variable;
+some control commands (<tt/lum/, <tt/color/) need to know the range of data
+values, and will use this instead of measuring the actual range.
+
+<tag>
+datatime <it/time/
+</tag>
+Label subsequent data with this <it/time/ (a non-negative integer).
+
+
+<tag>
+warp
+</tag>
+When 'warp' has been defined for a group,
+all its particles get their positions (re)computed according to
+(a) the warp data-command's parameters, (b) the current time, (c) the particle's
+initial position, and (d) maybe some attributes of each particle.
+
+
+There are several (mutually exclusive) kinds of warping available: 
+<itemize>
+ <item> for doing a sort of differential rotation for disk-like galaxies;
+ <item> for doing N-D to 3-D projection, where particle positions are replaced with	
+	(time-independent) linear combinations of attribute values;
+ <item> linear or polynomial extrapolation of the particle position with time,
+	with coefficients specified as triples of attributes
+ <item> for putting particles on epicycle-style orbits,
+	resembling the motions of stars in a disk galaxy
+</itemize>
+
+Options to <tt/warp/ data command:
+<descrip>
+
+<tag>-p period0[f|s]</tag>
+"Rotation period".  Sets timescale of motion, in frames (f) or seconds (s).  
+
+<tag>-extrap coef0[,degree]]</tag>
+Extrapolate position with time.  Velocity is given by attribute coef0 and the two attributes following it
+(coef0 .. coef0+2), in the sense p = p_0 + [coef0 .. coef0+2] * (time/period0).
+If <it/degree/ given (default 1), uses 3*<it/degree/ attributes as polynomial coefficients, as
+ p=p0+(t/period0)*field[coef0..coef0+2]+(t/period0)^2*[coef0+3..coef0+5]+...
+
+<tag>-sheet ampl,xlength,zlength</tag>
+For disk galaxy style: Applies exponential sheet warp for disk lying in the X-Z plane.
+Scale set by xlength and zlength, Y-displacement set by ampl.
+
+<tag>-f fin,fout</tag>
+For disk-galaxy style: gives time range over which warp applies.  
+
+<tag>-z zerotime</tag>
+For disk galaxy style: sets time at which particles are in their original positions.
+
+<tag>-R rot[,drot]</tag>
+Disk galaxy style: Add constant to rotation angle.
+
+<tag>-T o2d</tag>
+Provide object-to-disk coordinate transform (in "disk" coordinates, the disk lies in X-Z plane).
+9 or 16 numbers.
+
+<tag>-F d2o</tag>
+Provide disk-to-object transform.  9 or 16 numbers.
+
+<tag>-r rcore[,transition][w]</tag>
+Disk galaxy style: set radius of rigidly-rotating inner region, and transition to constant-velocity region
+
+<tag>-fix x,y,z[w]|radius[w]</tag>
+Disk galaxy style: Keep the given 3-D point, or a point at the given disk radius, fixed.  
+E.g. track the sun.
+
+<tag>-galaxy gorbcoef0</tag>
+Special disk galaxy style.  Each star is on its own disk-galaxy-like orbit,
+with 8 orbital parameters given by 8 consecutive attributes starting with gorbcoef0.
+See galaxyorbit.h (read the source).
+
+<tag>-ride speckno</tag>
+Ride along with speckno'th particle in first loaded group (displace particles by the difference
+between their computed orbit position and the ridden-on particle).
+</descrip>
+
+<tag>
+<it/Xpos Ypos Zpos Var0 .... /
+</tag>
+These lines, with XYZ positions in the first 3 columns, will make up the bulk
+of a typical dataset. The 4th and subsequent columns contain the values of the
+datavariables as named with the <bf/datavar/ commands. Note that
+data variable (field) numbers are 0-based.
+
+</descrip>
+
+
+<!----------------------------------------------------------------------  -->
+<sect1> Kira/Starlab </>
+<p>
+
+To read Kira output, in human-readable or binary <bf/tdyn/ form, use the
+``<tt/kira/ <it/kirafilename/'' data-command.
+
+<p>
+<sect2> Kira particle attributes </>
+<p>
+The particles read in have the following attributes:
+<descrip>
+  <tag> id </>
+	positive integer worldline index for single stars
+		(matching the id in the kira stream).
+	For non-leaf (center-of-mass) tree nodes, <tt/id/ is a
+	negative integer.
+  <tag> mass </>
+	Mass, in solar mass units (see ``kira mscale'' control command).
+  <tag> nclump </>
+	Number of stars in this particle's subtree.
+	1 for isolated stars, 2 for binaries, etc.
+  <tag> Tlog </>
+	base-10 log of temperature (K)
+  <tag> Lum  </>
+	Luminosity in solar-mass units.  (Note this is linear, not log luminosity.)
+  <tag> stype </>
+	Stellar type code (small integer).
+	The [bracketed] message reported when picking (button-2 or p key)
+	on a star gives the corresponding human-readable stellar type too.
+  <tag> ismember </>
+	Is this star still a member of (bound to) the cluster?
+  <tag> rootid </>
+	id of root of subtree.  For single stars, rootid = id.
+  <tag> treeaddr </>
+	bit-encoded location of star in subtree.
+  <tag> ringsize </>
+	0 for stars.
+	For nonleaf nodes, this is the semimajor axis or instantaneous
+	separation (according to ``<tt/kira sep/'').
+	This field isn't multiplied by the scale factor given in
+	<tt/kira sep/; it gives the actual distance in kira units.
+  <tag> sqrtmass </>
+	Square root of mass/Msun.  Might be useful for luminosity scaling.
+  <tag> mu </>
+	Mass ratio for center-of-mass nodes.  Zero for stars.
+</descrip>
+<p>
+
+<sect2> Hertzsprung-Russell diagram </>
+<p>
+The H-R diagram can be invoked via the <tt/More.../ menu (upper left)
+or by the <tt/kira hrdiag on/ control command.
+Axes for this plot are log temperature (initial range from 5 to 3)
+and log luminosity (initial range -4 to 6).  Ranges may be changed
+with the <tt/kira hrdiag range/ command or with keystrokes.
+<p>
+Keystroke commands in the H-R window:
+<descrip>
+  <tag> b/B </>
+	Adjust the (b)rightness (dot size) of the dots plotted for each star.
+	Small b brightens (enlarges); capital B shrinks.
+  <tag> a/A </>
+	Adjust (a)lpha (opacity) of dots plotted for each star.
+	If many stars coincide in H-R, their brightnesses add.
+	Thus reducing opacity may help clarify the relative L-T space
+	densities, if there are many stars.
+  <tag> v/V </>
+	Zoom out (v) or in (V) by 33%.  The point under the cursor
+	becomes the center of the view.
+</descrip>
+
+<sect2> kira control commands </>
+<p>
+Viewing control options for kira/Starlab
+formatted data that have been read in with
+the <tt/kira/ Data Command.
+All control commands begin with <tt/kira/ too.
+    <descrip>
+    <tag> kira node {on|off|root} </tag>
+	Show or hide center-of-mass nodes for multiple stars.
+	With <tt/on/, show CM nodes for each level in a binary tree.
+	With <tt/root/, show only the top-level CM node for each multiple.
+
+    <tag> kira ring {on|off|root} </tag>
+	Show circles around multiple stars; <tt/on/ and <tt/root/ as above.
+
+    <tag> kira tree {on|off|cross|tick} [<it/tickscale/]  </tag> <p>
+	Show lines connecting pairs of stars at each binary-tree level
+	in a multiple group.  With <tt/cross/, also show a perpendicular
+	line -- a tick mark -- which crosses at the CM point,
+	and whose length is <tt/tickscale/ (default 0.5) times the
+	true separation of the pair.
+	With <tt/tick/, just show the tick-mark with no connecting line.
+
+    <tag> kira size [sep|semi] [<it/ringscalefactor/]  </tag>
+	Determines 3-D size of circles when <tt/kira ring on/.
+	With <tt/kira size sep/, ring diameter is scalefactor * instanteous
+	separation.  With <tt/kira size semi/, ring radius is scalefactor * a
+	(the semimajor axis of the two-body system, or <tt/|a|/ for
+	hyperbolic orbits).  Using <tt/semi/ gives typically more stable-looking
+	rings, though they will pop if they become marginally (un-)bound.
+	Default: <tt/kira size semi 1.5/.
+
+    <tag>kira scale <it/ringscalefactor/</tag>
+	Synonym for <tt/kira size/ above.
+
+    <tag> kira span <it/minpix/ <it/maxpix/ </tag>
+	Sets screen-space (pixel) size limits on rings.
+	They'll never get smaller than radius <it/minpix/ nor larger than
+	<it/maxpix/, regardless of true 3-D size.  Thus even vanishingly
+	tight binaries can always be visibly marked.
+	Default: <tt/kira span 2 50/.
+
+    <tag> kira track <it/id/|on|off </tag>
+	As particle <it/id/ moves through time, move the viewpoint in the
+	same way, so that (if you don't move the view by navigation)
+	the particle remains fixed in apparent position.
+	<tt/kira track off/ disables tracking, and <tt/kira track on/
+	re-enables it.
+	Use the <tt/p/ key or mouse button 2 to pick a particle
+	(or CM node if <tt/kira node on/) to see its numeric <it/id/.
+	Transient center-of-mass nodes (shown if <tt/kira node on/)
+	can be tracked while they exist.
+
+    <tag> kira mscale <it/massscalefactor/[!] </tag>
+	Set/check the mass scale factor.
+	Starlab dynamical mass values are multiplied by this factor
+	for reporting to the user.  Normally <it/massscalefactor/
+	should equal the initial cluster mass in solar-mass units.
+	For some input files, starlab can determine what was specified
+	in the original kira run.  If so, ``kira mscale <it/number/''
+	will be ignored unless <it/number/ ends with an exclamation point (!).
+	So with no <tt/!/, the user (or .cf script) provides a default value;
+	use <tt/!/ to override the original mass scale.
+
+    <tag> kira int <it/seldest/ [= <it/selsrc/] </tag>
+	Track interactions between particles.
+	As the cluster evolves, whenever any star matching
+	selection-expression <it/selsrc/ encounters (is a member of
+	the same kira tree as) another particle, then the other
+	particle is added to the <it/seldest/ set.  If <it/seldest/
+	and <it/selsrc/ are the same (or if ``= <it/selsrc/'' is omitted),
+	then <tt/kira int/ computes the transitive closure of the
+	interaction set.
+	Otherwise, only stars that encounter members of the initial
+	<it/selsrc/ set become members of the <it/seldest/ set.
+	Example:
+	<descrip>
+	 <tag> click on some star </tag>
+		The clicked-on star(s) become members of the <tt/pick/ set.
+	 <tag> sel x = pick </tag>
+		Save a copy in the new set named <tt/x/.
+	 <tag> kira int x </tag>
+		Accumulate encounters in the set <tt/x/.
+	 <tag> emph x </tag>
+		Increase brightness of members of <tt/x/.
+	 <tag> kira trail x </tag>
+		Extend trails from these set members.
+	</descrip>
+
+
+    <tag> kira trail <it/selexpression/|off </tag>
+	Leave trails behind particles selected by <it/selexpression/
+	(see the <tt/sel/ command).  As (dynamical) time passes, for each
+	display update, one sample point is added to the trail
+	for each selected particle.  (If you reverse the direction of
+	time, the trails will fold back on themselves.)  Some examples:
+	<descrip>
+	  <tag> kira trail all </tag>
+		Makes trails grow behind all particles
+		(including CM nodes, if they're displayed)
+	  <tag> kira trail pick </tag>
+		Clicking on a star will make a trail grow behind it.
+		If several stars are within picking range (under the cursor),
+		trails will grow behind each of them.
+	  <tag> thresh -s big  mass > 1.5 </tag>
+		threshold when masses are larger than 1.5
+	  <tag> kira trail big </tag>
+		These two commands (a) select all stars exceeding
+		1.5 solar masses and (b) extend trails behind them.
+	</descrip>
+
+    <tag> kira trail clear </tag>
+	Erase current trails, but let them continue to accumulate
+	as time passes.
+
+	    <tag> kira maxtrail <it/nsamples/ </tag>
+	Set how many time-points are kept for each particle's trail,
+	initially 50.
+
+    <tag> kira hrdiag on|off </tag>
+	toggle to turn HR Diagram on or off. Initially off.
+    <tag> kira hrdiag range <it/logTleft logTright logLbottom logLtop/ </tag>
+	set limits on the HR Diagram axes.
+	
+    </descrip>
+
+
+<!----------------------------------------------------------------------  -->
+<sect1> Textures </>
+<p>
+To make polygons be textured:
+  <itemize>
+  <item>Use a series of <tt/texture/ data-commands to provide a table
+	of textures, each named by a small integer <it/texture-index/;
+  <item>Create a data field in each particle whose value is the
+	<it/texture-index/ for that particle's polygon
+  <item>Use data-command <tt/texturevar /<it/fieldno/ to specify which
+	data field that is.
+  <item>Use control commands (<tt/poly/, <tt/polylumvar/, <tt/polysize/)
+	to enable drawing polygons and textures,
+	and to give the polygons nonzero size.
+  <item>Possibly use control command <tt/polysides/ to specify
+	4-sided polygons -- a bit faster to draw than default 11-gons.
+  </itemize>
+It doesn't matter whether the texture-index data field is given a datavar name.
+<p>
+For each particle, if the value of its <it/texturevar/'th field either
+(a) doesn't match the value in some <tt/texture/ command or
+(b) the file named in that <tt/texture/ command couldn't be read,
+then its polygon is drawn as if texturing were disabled.
+
+<!----------------------------------------------------------------------  -->
+<sect1> Coordinates and Coordinate Transformations
+<p>
+Matrices as for the <bf/tfm/ command
+are intended to be multiplied by an
+object-coordinate row vector on the left,
+so that 4x4 matrices specify a translation
+in their 13th through 15th entries.  Generally they're
+in the sense of an object-or-camera-to-world transform.
+
+The six- or seven-number transforms (<it/tx ty tz rx ry rz /[it/scalefactor/],
+as accepted by the <bf/tfm/ and <bf/jump/ commands)
+are interpreted as
+
+  <it/Pworld = Pobject * scalefactor * /rotY(<it/ry/) * rotX(<it/rx/) * rotZ(<it/rz/) * translate(<it/tx,ty,tz/)
+
+<sect1> Colormap Files
+<p>
+Colormap files, as read by the <tt/cmap/ and <tt/vcmap/ commands,
+are line-oriented text files.  Blank lines are ignored, as are
+<tt/#/ comments.  The first nonblank, non-comment line gives
+the colormap <it/size/ (number of entries).  Later lines may have the form
+<verb>
+  <it/R G B/
+</verb>
+giving red, green, and blue, each in the range 0 .. 1.
+Typically there will be <it/size/ of these lines.  However the
+colormap need not be written sequentially; a line like
+<verb>
+  <it/colorindex/:  <it/R G B/
+</verb>
+places that RGB value at that <it/colorindex/, in the range 0 .. <it/size/-1.
+Later <it/R G B/ lines are assigned to <it/colorindex+1/, <it/colorindex+2/
+and so on.  Also,
+<verb>
+  <it/colorindex/ := <it/oldcolorindex/
+</verb>
+copies the (previously-assigned) RGB value from <it/oldcolorindex/
+and assigns it to <it/colorindex/.
+
+<!----------------------------------------------------------------------  -->
+<sect> Viewing Window Keyboard Shortcuts 
+<p>
+
+Commands that you can give from within the viewing window are all single
+keystroke commands, often combined with moving the mouse.
+
+
+<tscreen><verb>
+
+TAB		change focus to command window for Control Commands
+S/s		toggle STEREO mode (need blue/red glasses :-)
+		modes:	mono redcyan crosseyed glasses
+                See also the 'stereo' View Command
+ctrl-S		toggle between left and right stereo views,
+		using current settings for focal length etc.
+		   Type e.g. "0s" to return to mono view.
+>               single frame forward stepping, in time animation mode
+<               single frame backward stepping, in time animation mode
+
+Button-N            various translation/rotation/zoom, depending on mode (fly/orbit/rot/tran)
+
+SHIFT + Button-N    modifier to the usual Button-N action, to have more fine control
+
+CTRL + Button-N     modifier to orbit-mode, e.g. to do translations instead of rotations 
+
+playmodes:
+	s	playnow
+	l	loop (rock)
+	f,e	playevery=1
+	r,t	playevery=0
+
+Gview.cpp : Fl_Gview::handle()
+	cw	reset camera position
+	p       identify nearest object under mouse cursor
+	P	pick that object as the new origin
+	o	ORBIT mode
+	f	FLY mode
+	r	ROTATE mode
+	t	TRANSLATE mode
+	O	toggle perspective mode
+	v	make field of view larger
+	V	make field of view smaller
+	^v	toggle debug output
+	@	report viewpoint position
+	=	show object-to-world, world-to-object 4x4 matrices
+		  (precede by object name, e.g. "c=", "g3=")
+	ESC	exit
+
+	PrintScreen  Take image snapshot of current view
+	<  >	Step backwards/forwards in dynamical time
+		   (numeric prefix sets time step)
+	{  }	Animate backwards/forwards in dynamical time
+	~	Fermionic dynamical-time animation toggle:
+		   cycle between stop/forward/stop/backward/...
+	z  Z    Halve/double animation speed (dyn units/sec)
+		   (numeric prefix sets animation speed)
+
+
+</verb></tscreen>
+
+<!--------------------------------------------------------------------------- -->
+<sect> Partiview and NEMO
+<p>
+The program <tt/snapspecks/  converts a NEMO snapshot to specks format
+that can be read in directly by partiview. The default viewing variables
+are <tt/x,y,z,m/, but you can add and changed them by
+using the <bf/options=/ keyword. 
+In fact, arbitrary <it/bodytrans/ expressions can be used
+for output.  In the following example a 32-body Plummer sphere is
+created, which is then given a power-law mass spectrum (with slope -2) 
+between 0.5 and 10 mass units, and animated:
+
+<tscreen><code>
+  % mkplummer - 32 |\
+        snapmass - - massname='n(m)' masspars=p,-2 massrange=0.5,10 |\
+        hackcode1 - run1.dat
+  % snapspecks run1.dat > run1.tab
+  % partiview run1.cf
+  % cat run1.cf
+
+  read run1.tab
+  eval labels off
+  eval lum lum 0 1
+  eval polylumvar point-size .1 area
+  texturevar 4
+  eval psize 5000
+  eval slum 5
+  eval every 1
+       
+</code></tscreen>
+
+
+<!--------------------------------------------------------------------------- -->
+<sect> Tips
+<p>
+
+During animation the trip/back buttons can effectively be used to return to
+a point in time where you want to return back to if you wanted to 
+browse around some specific point in time.
+<p>
+You can spend most of the time moving in [o]rbit mode.  Left-button
+moves around chosen center; control-left pans around the sky.
+As opposed to switching to 't' mode to zoom and translate, 
+you can also use SHIFT-Mouse-1 and SHIFT-Mouse-3 to achieve the same from
+the other ('o', 'f') modes.
+<p>
+To make an animation, create an executable shell script <tt/movie1/ with 
+for example the following commands:
+<tscreen><code>
+  #! /bin/csh -f
+  #
+  echo step 0
+  echo update
+  echo snapshot
+  echo step 0.01
+  echo update
+  echo snapshot
+  echo step 0.02
+  echo update
+  echo snapshot
+  echo step 0.03
+  echo update
+  echo snapshot
+  ...
+</code></tscreen>
+the Control Command <tt/async movie1/, and it will create files
+<tt/snap.000.sgi, snap.001.sgi, ..../ and already with <tt/xv/ a movie
+can be shown:
+<tscreen><code>
+  xv -wait 0 snap.???.sgi
+
+</code></tscreen>
+
+To make animated GIFs, here are some examples with common software, 
+all with a default 0.1 sec delay between frames. Some animation
+software (e.g. xanim) can change these:
+<tscreen><code>
+  convert -delay 10 -loop 0 snap.???.sgi try1.gif
+  gifsicle -d 10 snap.???.gif > try2.gif
+
+</code></tscreen>
+
+The script will run asynchronously within partiview, so if you then
+use the mouse to change orientation or zoom,
+these actions (minus the location of the mouse of course)
+will be nicely recorded in the snapshots.
+
+<!--------------------------------------------------------------------------- -->
+<sect> Bugs, Features and Limitations
+<p>
+
+Here is a list of known peculiarities, some of them bugs, others just
+features and others limitations, and there is always that class of
+things I simply have not understood how it works.
+
+<!--------------------------------------------------------------------------- -->
+<sect1> Limitations w.r.t. VirDir:
+<p>
+
+<enum>
+<item>
+cannot set an auto-motion, as we can in the dome, although one could
+of course load a path and move through the dataset :-)
+I was able to make a path (*.wf) file and load that though.
+Now mostly solved via the <tt/Inertia/ toggle under the
+<tt/More/ button from the Top Row Window.
+
+</enum>
+
+<!--------------------------------------------------------------------------- -->
+<sect1> Some notes for newcomers to VirDir
+<p>
+Although starting <tt/virdir/ is very similar to <tt/partiview/,
+<code>
+   % parti gal2.cf
+or, 
+   % virir gal2.cf
+</code>
+the seasoned <tt/partiview/ user will need  to relearn a few modes to
+get used to <tt/virdir/. In particular, at AMNH starting virdir will 
+probably cause your console screen  (which is normally panel#1 on the
+dome) to go dark with no visible command prompt. To regain control,
+type the commands (blindly)
+<tscreen><code>
+
+   raise
+   fly
+   idle
+
+</code></tscreen>
+which will put <tt/virdir/ in fly and animation mode.
+<p>
+Here are some important modes, make sure you keep the mouse in the console window.
+It is easy to get it lost in any of the other 6 displays which are only visible
+on the dome.
+<enum>
+<item>
+Pushing the Left and Right mouse buttons simultaneously will send the display
+to the HOME position.
+
+<item>
+Left mouse button will toggle the Pause mode in animate/fly mode.
+
+<item>
+Holding the Ctrl-button down while moving the mouse will bring your point
+of interest into view
+
+<item>
+Holding the Alt-button down while moving the mouse will rotate around your
+point of interest.
+
+<item>
+The 'p' key
+
+<item>
+The middle mouse button toggles Head display vs. Center display.
+
+<item>
+Holding the Shift-button down while moving the mouse will change the 
+available screen-space (works like a zoom).
+
+
+</enum>
+
+<sect> Glossary
+<p>
+
+<enum>
+
+<item>
+group: particles can be grouped with the <tt/object/ command. If multiple groups
+exist, a separate <tt/Group/ row will be activated automatically.
+
+<item>
+data command, not to be confused with control command
+
+<item>
+control command, not to be confused with data command
+
+<item>
+
+
+</enum>
+
+
+</article>

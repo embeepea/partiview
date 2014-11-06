@@ -1,0 +1,243 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
+ <TITLE> Partiview (PC-VirDir): Installation</TITLE>
+ <LINK HREF="partiview-2.html" REL=next>
+
+ <LINK HREF="partiview.html#toc1" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="partiview-2.html">Next</A>
+Previous
+<A HREF="partiview.html#toc1">Contents</A>
+<HR>
+<H2><A NAME="s1">1.</A> <A HREF="partiview.html#toc1">Installation</A></H2>
+
+
+<P>This release has been tried on Linux (Fedora, Ubuntu, etc.), Mac OS X, Irix and Windows.</P>
+<P>partiview needs two libraries to compile: OpenGL (or MESA) for the 
+drawing operations, and FLTK for the graphical user interface.
+These libraries are known to work on MS-Windows as well as many Unix flavors.</P>
+
+
+<H2><A NAME="ss1.1">1.1</A> <A HREF="partiview.html#toc1.1">OpenGL (possibly via Mesa)</A>
+</H2>
+
+
+<P>Most platforms will have it installed already, whether as libMesaGL or libGL.
+Our <CODE>configure</CODE> script (see below) 
+should take care of the two possible options.</P>
+<P>Homepage: 
+<A HREF="http://mesa3d.sourceforge.net/">http://mesa3d.sourceforge.net/</A></P>
+
+<P>Redhat packages: (part of powertools I believe)</P>
+
+
+<H2><A NAME="ss1.2">1.2</A> <A HREF="partiview.html#toc1.2">FLTK</A>
+</H2>
+
+<P>Also make sure <CODE>FLTK</CODE> is installed, from fltk.org.
+FLTK versions 1.3.x (e.g. 1.1.7, 1.1.9, ...) work.  
+FLTK 2 will not work with partiview.</P>
+<P>If you're not sure whether you already have it, try</P>
+<P>
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+       % locate libfltk.a 
+       % locate Fl_Slider.h
+
+if they fail, then
+
+       % cd &lt;where-ever&gt;/fltk-1.3.0
+       % make install
+  
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+</P>
+<P>(you only need it if you want to recompile partiview at some point,
+not if you just want to run it, since FLTK is built-in to partiview binaries.)</P>
+<P>Homepage: 
+<A HREF="http://www.fltk.org/">http://www.fltk.org/</A></P>
+<P>Find rpms: 
+<A HREF="http://rpmfind.net">http://rpmfind.net</A></P>
+
+<P>     FLTK is under continuous development.   Versions from 1.1.1 through
+1.1.9 have been successfully tested with partiview. Some problems
+with other versions exist, but 1.1.4 is also known to work.</P>
+
+
+<H2><A NAME="ss1.3">1.3</A> <A HREF="partiview.html#toc1.3">partiview</A>
+</H2>
+
+
+<P>You can decide to use a branded version, usually available as a tar or zip file,
+or use the CVS (see below).
+Extract the tarball, and install the program from within the 
+<CODE>src</CODE> directory:</P>
+<P>
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+       % tar zxf partiview-0.6.tar.gz
+
+       % cd partiview-0.6/src
+       % make clean                (if you really must compile a new executable)
+       % ./configure               (GNU autoconf toolset to ease installation)
+       % make depend               (might need to make new local dependancies)
+       % make partiview            (should not have to edit Makefile anymore)
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+</P>
+
+<P>If you encounter difficulties of locating either the FLTK or MESA/OpenGL
+libraries, configure script options can specify them:
+<CODE>--with-fltk=</CODE><I>dirname</I> names the directory which contains the
+<CODE>lib</CODE> and <CODE>FL</CODE> subdirectories, <CODE>--with-mesa=</CODE><I>dirname</I>
+can specify the Mesa installation directory [??], and
+<CODE>--with-kira=</CODE><I>dirname</I> names the Starlab directory, whose default
+value is taken from environment variable STARLAB_PATH if that is set.</P>
+
+<H2><A NAME="ss1.4">1.4</A> <A HREF="partiview.html#toc1.4">CVS</A>
+</H2>
+
+<P>The current source code of <CODE>partiview</CODE> is always available from CVS,
+with public anonymous read-only access.  Occasionally we stamp out a
+packaged release, too, but looking to CVS is best.</P>
+<P>(Partiview developers can request a non-anonymous CVS account
+from Peter Teuben -- <CODE>teuben@astro.umd.edu</CODE>.)</P>
+<P>Currently the CVS repository machine is <CODE>cvs.astro.umd.edu</CODE>.
+Here's a sample session with some commonly used CVS commands:</P>
+<P>
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+ export CVSROOT   :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot
+ setenv CVSEDITOR emacs
+
+ cvs -d :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot  login
+                                     # only needed once, to set up "pserver" CVS access
+
+ cvs -d :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot checkout partiview
+                                     # get a new local sandbox to work in, or
+
+ cd partiview                        # goto the root directory of partiview
+ cvs -n -q update                    # check if others had made any changes
+ cvs update                          # if so, update your sandbox and/or resolve conflicts
+
+ cd partiview/src                    # goto the 'src' directory of partiview
+ ./configure --with-fltk=/some/where/fltk-1.3.something/ --with-glew=/some/where/glew...
+
+ emacs partibrains.c                 # edit some files
+ make all                            # compile the program
+ ./partiview                         # test the program
+ emacs kira_parti.cc                 # edit another file
+ make all                            # check if it still compiles
+
+ cvs -n -q update                    # check if anybody else made changes
+ cvs update                          # if so, update your sandbox again, resolve conflicts
+
+ cvs commit                          # and commit your changes
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss1.5">1.5</A> <A HREF="partiview.html#toc1.5">Compiling under Windows</A>
+</H2>
+
+<P>Partiview can be compiled from the command line on Windows using 
+<CODE>gcc/g++</CODE> with
+<CODE>MinGW32, MSYS and w32api</CODE> (see <CODE>http://mingw.org/</CODE>).  The MinGW route is currently the only way
+to compile with kira/Starlab support.  There's no provision for building
+partiview within the MS Visual Studio GUI.   Mingw64 has not been tested, only Mingw32.</P>
+
+<P>To compile with MinGW and company, you'll need to:
+<OL>
+<LI> Install <CODE>MinGW</CODE> (gcc, etc.), 
+and the <CODE>MSYS</CODE> suite of
+UNIX-like tools.  It's easiest to simply fetch and run the mingw installer.  See the Download link in:
+<A HREF="http://mingw.org">http://mingw.org</A></LI>
+<LI> Install into a directory such as <CODE>C:\MinGW</CODE>.</LI>
+<LI> Open a MinGW shell: invoke msys.bat, which will be under something like <CODE>C:\MinGW\MSys\1.0\msys.bat</CODE>.
+</LI>
+<LI> Use MinGW to build FLTK.   (FLTK 1.3.x, e.g. 1.3.0, works with partiview.  FLTK 2.0 won't work.
+Not sure about versions in between.)   Unpack the FLTK source distribution and say
+<BLOCKQUOTE><CODE>
+<PRE>
+    sh configure
+    make
+</PRE>
+</CODE></BLOCKQUOTE>
+
+</LI>
+<LI> Build the Starlab libraries, if desired:
+<OL>
+<LI>Use CVS to checkout the Starlab sources into some directory:
+<BLOCKQUOTE><CODE>
+<PRE>
+    cd C:\some\where
+    set CVSROOT=:pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot
+    cvs login
+    cvs checkout starlab
+    cd starlab
+</PRE>
+</CODE></BLOCKQUOTE>
+
+</LI>
+<LI>Copy <CODE>templates\starlab_setup.bat</CODE> to
+<CODE>local\starlab_setup.bat</CODE>, and edit it.
+Change the first two <CODE>set</CODE> commands: set <CODE>STARLAB_PATH</CODE>
+to the installation directory -- in the above example,
+<CODE>set STARLAB_PATH=C:\some\where\starlab</CODE>.
+Also optionally update (or remove) <CODE>set PATH=...</CODE>
+to add MSYS and MinGW <CODE>bin</CODE> directories to it.</LI>
+<LI>From a Windows command window, type
+
+<BLOCKQUOTE><CODE>
+<PRE>
+     local\starlab_setup
+     make libs  
+</PRE>
+</CODE></BLOCKQUOTE>
+
+</LI>
+<LI>If successful, you should find in the <CODE>lib</CODE> directory
+the files <CODE>libdstar.a  libdyn.a  libnode.a  librdc.a  libsstar.a  libstd.a  libtdyn.a</CODE></LI>
+</OL>
+
+
+</LI>
+<LI>Now, back in the <CODE>partiview/src</CODE> directory,
+use <CODE>configure</CODE> and <CODE>make</CODE> as under Unix.
+The MSYS package imposes its own UNIX-like syntax for Windows pathnames,
+which you'll need to use as arguments to configure and friends,
+with forward- instead of backslashes and a /<I>drive-letter</I> prefix.
+Also, if typing to a Windows command-window, shell scripts like
+<CODE>configure</CODE> must be explicitly fed to <CODE>sh</CODE>.
+Thus for example if FLTK is installed in <CODE>C:\util\fltk-1.1.9</CODE>
+and Starlab is in <CODE>F:\src\starlab</CODE>, then you might build
+partiview by typing
+<BLOCKQUOTE><CODE>
+<PRE>
+        sh configure --with-fltk=/c/util/fltk-1.3.0  --with-kira=/f/src/starlab
+        make
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Note there's no need to specify the location of the OpenGL or other
+libraries; the configure script and MinGW tools already know
+where to find those.  Omit the "--with-kira=..." if you're not using Starlab.</LI>
+</OL>
+</P>
+
+
+<HR>
+<A HREF="partiview-2.html">Next</A>
+Previous
+<A HREF="partiview.html#toc1">Contents</A>
+</BODY>
+</HTML>
